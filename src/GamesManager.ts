@@ -19,13 +19,25 @@ class GamesManager {
       );
     }
 
-    const game = new Game(players, textChannel);
+    const game = new Game(players.array(), textChannel);
 
     this._games.set(textChannel.id, game);
     Log.info(
       `Created a new game for channel "#${textChannel.name}" with ${players.size} players`
     );
     game.start();
+  }
+
+  public stopGame(textChannel: TextChannel) {
+    if (this._games.has(textChannel.id)) {
+      Log.info(`Stopping game in channel "#${textChannel.name}"`);
+
+      this._games.delete(textChannel.id);
+    } else {
+      Log.error(
+        `Unable to game in channel "#${textChannel.name}": Game was not registered`
+      );
+    }
   }
 }
 

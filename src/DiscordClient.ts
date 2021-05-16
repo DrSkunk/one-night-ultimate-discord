@@ -1,4 +1,5 @@
 import Discord, {
+  GuildMember,
   MessageAttachment,
   MessageEmbed,
   TextChannel,

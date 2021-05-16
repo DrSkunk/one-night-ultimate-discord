@@ -10,7 +10,7 @@ const command: Command = {
   adminOnly: false,
 };
 
-function execute(_msg: Message, args: string[]): void {
+async function execute(_msg: Message, args: string[]): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
@@ -27,12 +27,14 @@ function execute(_msg: Message, args: string[]): void {
   // set in the .env and used in DiscordClient.ts, essentially making the game manager obsolete.
   // In order to enable multiplae games, remove the check in the this._client.on('message',...) method
   // in DiscordClient.ts (currently line 69).
-  const voiceChannel = _msg.guild?.channels.cache.find(
-    ({ type, name }) =>
-      type === 'voice' && name.toLowerCase().includes(args[0].toLowerCase())
-  );
-
-  const players = voiceChannel?.members;
+  // const voiceChannel = _msg.guild?.channels.cache.find(
+  //   ({ type, name }) =>
+  //     type === 'voice' && name.toLowerCase().includes(args[0].toLowerCase())
+  // );
+  // const players = voiceChannel?.members;
+  ///////////////////////////
+  const players = await client.getDummyPlayers();
+  //////////////////////////
 
   if (!players) {
     client.sendMessage(`Empty voice channel`);

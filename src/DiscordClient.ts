@@ -1,4 +1,5 @@
 import Discord, {
+  Collection,
   GuildMember,
   MessageAttachment,
   MessageEmbed,
@@ -13,9 +14,21 @@ import { Command } from './types/Command';
 const globPromise = promisify(glob);
 
 class DiscordClient {
-  getChannel() {
-    throw new Error('Method not implemented.');
+  ////////////////////////////
+  // dummy players, remove after testing
+  async getDummyPlayers(): Promise<Collection<string, GuildMember>> {
+    const userIds = ['185089816218697729', '649694899095994378'];
+    const users: Collection<string, GuildMember> = new Collection();
+    for (const id of userIds) {
+      const user = await this._channel.members.get(id);
+      if (user) {
+        users.set(user.id, user);
+      }
+    }
+    return users;
   }
+  ///////////////////////////
+
   private _token: string;
   private _client: Discord.Client;
   private _channel: Discord.TextChannel;

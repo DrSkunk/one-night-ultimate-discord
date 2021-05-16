@@ -1,28 +1,26 @@
-import { Collection, GuildMember, TextChannel } from 'discord.js';
+import { GuildMember, TextChannel } from 'discord.js';
 import { CARDS_ON_TABLE, MAXIMUM_PLAYERS, MINIMUM_PLAYERS } from './Constants';
-import { getDiscordInstance } from './DiscordClient';
 import { RoleName } from './enums/RoleName';
 import { getGamesManagerInstance } from './GamesManager';
 import { Log } from './Log';
 import { Player } from './Player';
+import { GameState } from './types/GameState';
+import { Role } from './roles/Role';
 import { Doppelganger } from './roles/Doppelganger';
+import { Werewolf } from './roles/Werewolf';
+import { Minion } from './roles/Minion';
+import { Mason } from './roles/Mason';
+import { Seer } from './roles/Seer';
+import { Robber } from './roles/Robber';
+import { Troublemaker } from './roles/Troublemaker';
 import { Drunk } from './roles/Drunk';
 import { Insomniac } from './roles/Insomniac';
-import { Mason } from './roles/Mason';
-import { Minion } from './roles/Minion';
-import { Robber } from './roles/Robber';
-import { Role } from './roles/Role';
-import { Seer } from './roles/Seer';
-import { Troublemaker } from './roles/Troublemaker';
 import { Villager } from './roles/Villager';
-import { Werewolf } from './roles/Werewolf';
-import { GameState } from './types/GameState';
 
 export class Game {
   private _players: Player[];
   private _textChannel: TextChannel;
-  private _playerRoles: GameState;
-  private _tableRoles: Role[];
+  private _gamestate: GameState;
 
   constructor(players: GuildMember[], textChannel: TextChannel) {
     if (players.length < MINIMUM_PLAYERS || players.length > MAXIMUM_PLAYERS) {
@@ -31,18 +29,20 @@ export class Game {
     this._players = players.map((player) => new Player(player));
 
     this._textChannel = textChannel;
-    this._playerRoles = {
-      [RoleName.doppelganger]: [],
-      [RoleName.werewolf]: [],
-      [RoleName.minion]: [],
-      [RoleName.mason]: [],
-      [RoleName.seer]: [],
-      [RoleName.robber]: [],
-      [RoleName.troublemaker]: [],
-      [RoleName.drunk]: [],
-      [RoleName.insomniac]: [],
+    this._gamestate = {
+      playerRoles: {
+        [RoleName.doppelganger]: [],
+        [RoleName.werewolf]: [],
+        [RoleName.minion]: [],
+        [RoleName.mason]: [],
+        [RoleName.seer]: [],
+        [RoleName.robber]: [],
+        [RoleName.troublemaker]: [],
+        [RoleName.drunk]: [],
+        [RoleName.insomniac]: [],
+      },
+      tableRoles: [],
     };
-    this._tableRoles = [];
   }
 
   public get textChannel(): TextChannel {
@@ -85,12 +85,12 @@ export class Game {
     for (let index = 0; index < randomRoles.length; index++) {
       const role = randomRoles[index];
       if (index >= randomRoles.length - CARDS_ON_TABLE) {
-        this._tableRoles.push(role);
+        this._gamestate.tableRoles.push(role);
       } else {
         const player = this._players[index];
         player.role = role;
         if (callOrder.includes(role.name)) {
-          this._playerRoles[role.name]?.push(player);
+          this._gamestate.playerRoles[role.name]?.push(player);
         }
       }
     }
@@ -126,10 +126,20 @@ Please check your privacy settings.`
       this.stopGame();
     } else {
       // start game
-      for (const role of callOrder) {
-        this._playerRoles[role]?.forEach((player) => {
-          player.role?.doTurn(this._playerRoles, player.getGuildMember());
-        });
+      try {
+        for (const role of callOrder) {
+          const players = this._gamestate.playerRoles[role];
+          if (players) {
+            const roles = players.map((player) =>
+              player.role?.doTurn(this._gamestate, player.getGuildMember())
+            );
+            await Promise.all(roles);
+          }
+        }
+      } catch (error) {
+        Log.error(error.message);
+        this._textChannel.send(error.message);
+        this.stopGame();
       }
     }
   }

@@ -1,13 +1,13 @@
-import { GuildMember } from 'discord.js';
 import { RoleName } from '../enums/RoleName';
 import { Log } from '../Log';
+import { Player } from '../Player';
 import { GameState } from '../types/GameState';
 import { Role } from './Role';
 
 export class Minion extends Role {
   name = RoleName.minion;
 
-  async doTurn(gameState: GameState, player: GuildMember): Promise<void> {
+  async doTurn(gameState: GameState, player: Player): Promise<void> {
     if (
       !gameState.playerRoles.werewolf ||
       gameState.playerRoles.werewolf?.length === 0
@@ -17,12 +17,7 @@ export class Minion extends Role {
       );
     } else {
       const names = gameState.playerRoles.werewolf
-        .map((otherWerewolf) => {
-          if (otherWerewolf.getGuildMember().nickname) {
-            return otherWerewolf?.getGuildMember().nickname;
-          }
-          return otherWerewolf?.getGuildMember().displayName;
-        })
+        .map((otherWerewolf) => otherWerewolf.name)
         .join(' and ');
       const werewolfSentence =
         gameState.playerRoles.werewolf.length === 1

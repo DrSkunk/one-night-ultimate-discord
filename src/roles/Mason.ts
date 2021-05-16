@@ -1,13 +1,13 @@
-import { GuildMember } from 'discord.js';
 import { RoleName } from '../enums/RoleName';
 import { Log } from '../Log';
+import { Player } from '../Player';
 import { GameState } from '../types/GameState';
 import { Role } from './Role';
 
 export class Mason extends Role {
   name = RoleName.mason;
 
-  async doTurn(gameState: GameState, player: GuildMember): Promise<void> {
+  async doTurn(gameState: GameState, player: Player): Promise<void> {
     if (gameState.playerRoles.mason?.length !== 1) {
       const masons = gameState.playerRoles.mason;
       // Assert that there are masons
@@ -15,16 +15,11 @@ export class Mason extends Role {
         throw new Error('Invalid gamestate, no masons in the game.');
       }
       const otherMasons = masons.filter(
-        (otherPlayer) => otherPlayer.getGuildMember().id !== player.id
+        (otherPlayer) => otherPlayer.id !== player.id
       );
 
       const otherNames = otherMasons
-        .map((otherMason) => {
-          if (otherMason.getGuildMember().nickname) {
-            return otherMason?.getGuildMember().nickname;
-          }
-          return otherMason?.getGuildMember().displayName;
-        })
+        .map((otherMason) => otherMason.name)
         .join(' and ');
 
       const masonSentence =

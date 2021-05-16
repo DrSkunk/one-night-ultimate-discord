@@ -2,6 +2,7 @@ import { GuildMember, MessageReaction } from 'discord.js';
 import { MAX_RETRIES, REACTION_WAIT_TIME } from '../Constants';
 import { RoleName } from '../enums/RoleName';
 import { Log } from '../Log';
+import { Player } from '../Player';
 import { GameState } from '../types/GameState';
 import { Role } from './Role';
 
@@ -10,7 +11,7 @@ export class Werewolf extends Role {
 
   private retryCounter = 0;
 
-  async doTurn(gameState: GameState, player: GuildMember): Promise<void> {
+  async doTurn(gameState: GameState, player: Player): Promise<void> {
     if (gameState.playerRoles.werewolf?.length !== 1) {
       const werewolves = gameState.playerRoles.werewolf;
       // Assert that there are werewolves
@@ -18,16 +19,11 @@ export class Werewolf extends Role {
         throw new Error('Invalid gamestate, no werewolves in the game.');
       }
       const otherWerewolves = werewolves.filter(
-        (otherPlayer) => otherPlayer.getGuildMember().id !== player.id
+        (otherPlayer) => otherPlayer.id !== player.id
       );
 
       const otherNames = otherWerewolves
-        .map((otherWerewolf) => {
-          if (otherWerewolf.getGuildMember().nickname) {
-            return otherWerewolf?.getGuildMember().nickname;
-          }
-          return otherWerewolf?.getGuildMember().displayName;
-        })
+        .map((otherWerewolf) => otherWerewolf.name)
         .join(' and ');
 
       const werewolfSentence =
@@ -59,13 +55,13 @@ Click on the reaction to acknowledge and go back to sleep.`
     Log.info('Werewolf turn played.');
   }
 
-  setPlayer(player: GuildMember): void {
+  setPlayer(player: Player): void {
     this._player = player;
   }
 
   async sendChooseCardMessage(
     gameState: GameState,
-    player: GuildMember
+    player: Player
   ): Promise<void> {
     const message = await player.send(
       `You wake and you see that you are the only werewolf.

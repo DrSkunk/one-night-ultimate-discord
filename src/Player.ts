@@ -1,4 +1,4 @@
-import { GuildMember } from 'discord.js';
+import { GuildMember, Message } from 'discord.js';
 import { Role } from './roles/Role';
 
 export class Player {
@@ -9,15 +9,18 @@ export class Player {
     this._guildMember = player;
   }
 
-  public getGuildMember(): GuildMember {
-    return this._guildMember;
+  public async send(message: string): Promise<Message> {
+    return await this._guildMember.send(message);
+  }
+
+  get id(): string {
+    return this._guildMember.id;
   }
 
   get name(): string {
-    const member = this.getGuildMember();
-    if (member.nickname !== null) {
-      return member.nickname;
+    if (this._guildMember.nickname !== null) {
+      return this._guildMember.nickname;
     }
-    return member.displayName;
+    return this._guildMember.displayName;
   }
 }

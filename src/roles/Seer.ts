@@ -1,4 +1,4 @@
-import { GuildMember, MessageReaction } from 'discord.js';
+import { MessageReaction } from 'discord.js';
 import { MAX_RETRIES, REACTION_WAIT_TIME } from '../Constants';
 import { RoleName } from '../enums/RoleName';
 import { Log } from '../Log';
@@ -10,7 +10,7 @@ export class Seer extends Role {
   name = RoleName.seer;
   private retryCounter = 0;
 
-  async doTurn(gameState: GameState, player: GuildMember): Promise<void> {
+  async doTurn(gameState: GameState, player: Player): Promise<void> {
     const lookAtPlayerCards = await this.sendChooseGroupMessage(
       gameState,
       player
@@ -26,7 +26,7 @@ export class Seer extends Role {
 
   async sendChooseGroupMessage(
     gameState: GameState,
-    player: GuildMember
+    player: Player
   ): Promise<boolean> {
     const message = await player.send(`Do you either:
 - 1️⃣: Look at another player's card
@@ -64,7 +64,7 @@ export class Seer extends Role {
 
   async sendChooseCardMessage(
     gameState: GameState,
-    player: GuildMember
+    player: Player
   ): Promise<void> {
     const message = await player.send(`Which two cards do you choose?`);
     const reactions: string[] = ['1️⃣', '2️⃣', '3️⃣'];
@@ -107,13 +107,13 @@ export class Seer extends Role {
 
   async sendChoosePlayerMessage(
     gameState: GameState,
-    player: GuildMember
+    player: Player
   ): Promise<void> {
     const allPlayers: Player[] = Object.values(
       gameState.playerRoles
     ).flat() as Player[];
     const otherPlayers = allPlayers.filter(
-      (playerFromList) => playerFromList.getGuildMember().id !== player.id
+      (playerFromList) => playerFromList.id !== player.id
     );
     console.log('allPlayers', allPlayers);
 

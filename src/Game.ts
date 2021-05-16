@@ -99,14 +99,12 @@ export class Game {
     for (const player of this._players) {
       try {
         if (player.role) {
-          await player
-            .getGuildMember()
-            .send('Your role is: ' + player?.role.name);
+          await player.send('Your role is: ' + player?.role.name);
         } else {
           Log.error('There was a player without a role');
         }
       } catch (error) {
-        invalidPlayerIDs.push(player.getGuildMember().id);
+        invalidPlayerIDs.push(player.id);
       }
     }
 
@@ -131,7 +129,7 @@ Please check your privacy settings.`
           const players = this._gamestate.playerRoles[role];
           if (players) {
             const roles = players.map((player) =>
-              player.role?.doTurn(this._gamestate, player.getGuildMember())
+              player.role?.doTurn(this._gamestate, player)
             );
             await Promise.all(roles);
           }

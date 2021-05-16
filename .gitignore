@@ -1,0 +1,13 @@
+.DS_Store
+
+.idea/
+.tscache/
+tmp/
+espowered/
+
+node_modules/
+dist/
+roms/*.gb
+saves/*.sav
+frames/*.png
+.env

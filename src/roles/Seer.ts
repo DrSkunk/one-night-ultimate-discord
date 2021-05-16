@@ -115,7 +115,6 @@ export class Seer extends Role {
     const otherPlayers = allPlayers.filter(
       (playerFromList) => playerFromList.id !== player.id
     );
-    console.log('allPlayers', allPlayers);
 
     const reactions: string[] = [
       '1️⃣',

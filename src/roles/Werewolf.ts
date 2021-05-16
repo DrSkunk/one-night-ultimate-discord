@@ -1,4 +1,4 @@
-import { GuildMember, MessageReaction } from 'discord.js';
+import { MessageReaction } from 'discord.js';
 import { MAX_RETRIES, REACTION_WAIT_TIME } from '../Constants';
 import { RoleName } from '../enums/RoleName';
 import { Log } from '../Log';

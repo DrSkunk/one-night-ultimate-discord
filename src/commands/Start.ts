@@ -10,7 +10,7 @@ const command: Command = {
   adminOnly: false,
 };
 
-async function execute(_msg: Message, args: string[]): Promise<void> {
+async function execute(msg: Message, args: string[]): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
@@ -18,9 +18,15 @@ async function execute(_msg: Message, args: string[]): Promise<void> {
 
   const gamesManager = getGamesManagerInstance();
 
+  let voiceChannel;
   if (args.length === 0) {
-    client.sendMessage('Please supply a voice channel ID with players');
-    return;
+    voiceChannel = msg.member?.voice.channel;
+    if (!voiceChannel) {
+      client.sendMessage(
+        'Please supply a voice channel ID with players, or join a voice channel.'
+      );
+      return;
+    }
   }
 
   // TODO: Currently the bot only listens to messages sent to one specific channel, which is
@@ -41,7 +47,7 @@ async function execute(_msg: Message, args: string[]): Promise<void> {
     return;
   }
   try {
-    gamesManager.startNewGame(players, _msg.channel as TextChannel);
+    gamesManager.startNewGame(players, msg.channel as TextChannel);
   } catch (error) {
     client.sendMessage(error.message);
     return;

@@ -11,15 +11,29 @@ export class Werewolf extends Role {
   private retryCounter = 0;
 
   async doTurn(gameState: GameState, player: GuildMember): Promise<void> {
-    if (gameState.playerRoles.werewolf?.length === 2) {
-      const otherWerewolf = gameState.playerRoles.werewolf.find(
+    if (gameState.playerRoles.werewolf?.length !== 1) {
+      const werewolves = gameState.playerRoles.werewolf;
+      // Assert that there are werewolves
+      if (werewolves === undefined) {
+        throw new Error('Invalid gamestate, no werewolves in the game.');
+      }
+      const otherWerewolves = werewolves.filter(
         (otherPlayer) => otherPlayer.getGuildMember().id !== player.id
       );
-      const otherName = otherWerewolf?.getGuildMember().nickname
-        ? otherWerewolf?.getGuildMember().nickname
-        : otherWerewolf?.getGuildMember().displayName;
+
+      const otherNames = otherWerewolves
+        .map((otherWerewolf) => {
+          if (otherWerewolf.getGuildMember().nickname) {
+            return otherWerewolf?.getGuildMember().nickname;
+          }
+          return otherWerewolf?.getGuildMember().displayName;
+        })
+        .join(' and ');
+
+      const werewolfSentence =
+        otherWerewolves.length === 1 ? 'werewolf is' : 'werewolves are';
       const message = await player.send(
-        `You wake up and see that the other werewolf is ${otherName}.
+        `You wake up and see that the other ${werewolfSentence} ${otherNames}.
 Click on the reaction to acknowledge and go back to sleep.`
       );
 
@@ -41,9 +55,8 @@ Click on the reaction to acknowledge and go back to sleep.`
       player.send("You look in each other's eyes and go back to sleep.");
     } else {
       await this.sendChooseCardMessage(gameState, player);
-      await player.send('You go back to sleep');
     }
-    Log.info('Werewolf played his turn.');
+    Log.info('Werewolf turn played.');
   }
 
   setPlayer(player: GuildMember): void {

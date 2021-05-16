@@ -9,11 +9,15 @@ export class Player {
     this._guildMember = player;
   }
 
-  // public setRole(role: Role): void {
-  //   this._role = role;
-  // }
-
   public getGuildMember(): GuildMember {
     return this._guildMember;
+  }
+
+  get name(): string {
+    const member = this.getGuildMember();
+    if (member.nickname !== null) {
+      return member.nickname;
+    }
+    return member.displayName;
   }
 }

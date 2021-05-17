@@ -75,6 +75,9 @@ class DiscordClient {
       }
     });
 
+    // TODO: Currently the bot only listens to messages sent to one specific channel, which is
+    // set in the .env and used in DiscordClient.ts, essentially making the game manager obsolete.
+    // In order to enable multiplae games, remove the check "message.channel.id !== DiscordChannelId"
     this._client.on('message', async (message) => {
       if (
         !message.guild ||

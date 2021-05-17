@@ -27,19 +27,15 @@ async function execute(msg: Message, args: string[]): Promise<void> {
       );
       return;
     }
+  } else {
+    voiceChannel = msg.guild?.channels.cache.find(
+      ({ type, name }) =>
+        type === 'voice' && name.toLowerCase().includes(args[0].toLowerCase())
+    );
   }
-
-  // TODO: Currently the bot only listens to messages sent to one specific channel, which is
-  // set in the .env and used in DiscordClient.ts, essentially making the game manager obsolete.
-  // In order to enable multiplae games, remove the check in the this._client.on('message',...) method
-  // in DiscordClient.ts (currently line 69).
-  // const voiceChannel = _msg.guild?.channels.cache.find(
-  //   ({ type, name }) =>
-  //     type === 'voice' && name.toLowerCase().includes(args[0].toLowerCase())
-  // );
-  // const players = voiceChannel?.members;
   ///////////////////////////
-  const players = await client.getDummyPlayers();
+  const players = voiceChannel?.members;
+  // const players = await client.getDummyPlayers();
   //////////////////////////
 
   if (!players) {

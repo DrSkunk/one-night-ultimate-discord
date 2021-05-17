@@ -1,3 +1,4 @@
+import { AcknowledgeMessage } from '../ConversationHelper';
 import { RoleName } from '../enums/RoleName';
 import { Log } from '../Log';
 import { Player } from '../Player';
@@ -24,15 +25,15 @@ export class Mason extends Role {
 
       const masonSentence =
         otherMasons.length === 1 ? 'mason is' : 'masons are';
-      await player.send(
-        `You wake up and see that the other ${masonSentence} ${otherNames}.`
-      );
-      player.send("You look in each other's eyes and go back to sleep.");
+      const prompt = `You wake up and see that the other ${masonSentence} ${otherNames}.
+      Click on the reaction to acknowledge and go back to sleep.`;
+      await AcknowledgeMessage(player, prompt);
+      await player.send("You look in each other's eyes and go back to sleep.");
     } else {
-      await player.send(
-        `You wake and you see that you are the only mason.
-You go back to sleep.`
-      );
+      const prompt = `You wake and you see that you are the only mason.
+      Click on the reaction to acknowledge and go back to sleep.`;
+      await AcknowledgeMessage(player, prompt);
+      await player.send('You go back to sleep.');
     }
     Log.info('Mason turn played.');
   }

@@ -18,18 +18,20 @@ export class GameState {
   }
 
   public clone(): GameState {
-    // from _gamestate naar _startGameState
     const newPlayerRoles: PlayerRoles = {};
     for (const role of Object.keys(this.playerRoles)) {
       const roleName = role as RoleName;
+
+      if (!newPlayerRoles[roleName]) {
+        newPlayerRoles[roleName] = [];
+      }
+
       const players = this.playerRoles[roleName];
       if (players) {
         for (const player of players) {
           const toPush = newPlayerRoles[roleName];
           if (newPlayerRoles[roleName] && Array.isArray(toPush)) {
             toPush.push(player.clone());
-          } else {
-            newPlayerRoles[roleName] = [player.clone()];
           }
         }
       }

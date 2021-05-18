@@ -12,7 +12,7 @@ class GamesManager {
   public startNewGame(
     players: Collection<string, User>,
     textChannel: TextChannel
-  ) {
+  ): void {
     if (this._games.has(textChannel.id)) {
       throw new Error(
         `There's already a game being played in channel <#${textChannel.id}>`
@@ -28,16 +28,24 @@ class GamesManager {
     game.start();
   }
 
-  public stopGame(textChannel: TextChannel) {
+  public stopGame(textChannel: TextChannel): void {
     if (this._games.has(textChannel.id)) {
       Log.info(`Stopping game in channel "#${textChannel.name}"`);
 
       this._games.delete(textChannel.id);
     } else {
       Log.error(
-        `Unable to game in channel "#${textChannel.name}": Game was not registered`
+        `Unable to stop game in channel "#${textChannel.name}": Game was not registered`
       );
     }
+  }
+
+  public getGame(textChannel: TextChannel): Game {
+    const game = this._games.get(textChannel.id);
+    if (!game) {
+      throw new Error(`No game running in channel #${textChannel.name}`);
+    }
+    return game;
   }
 }
 

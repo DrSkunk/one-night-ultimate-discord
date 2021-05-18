@@ -6,10 +6,4 @@ export abstract class Role {
   abstract name: RoleName;
 
   abstract doTurn(gameState: GameState, player: Player): void;
-
-  public toString(): string {
-    return this.name;
-  }
-
-  abstract clone(): Role;
 }

@@ -15,14 +15,14 @@ async function execute(msg: Message, args: string[]): Promise<void> {
   if (!client) {
     throw new Error('Discord did not initialize');
   }
-
+  const textChannel = msg.channel as TextChannel;
   const gamesManager = getGamesManagerInstance();
 
   let voiceChannel;
   if (args.length === 0) {
     voiceChannel = msg.member?.voice.channel;
     if (!voiceChannel) {
-      client.sendMessage(
+      textChannel.send(
         'Please supply a voice channel ID with players, or join a voice channel.'
       );
       return;
@@ -33,19 +33,20 @@ async function execute(msg: Message, args: string[]): Promise<void> {
         type === 'voice' && name.toLowerCase().includes(args[0].toLowerCase())
     );
   }
+  // TODO don't forget to change this
   ///////////////////////////
   // const players = voiceChannel?.members;
   const players = await client.getDummyPlayers();
   //////////////////////////
 
   if (!players) {
-    client.sendMessage(`Empty voice channel`);
+    textChannel.send(`Empty voice channel`);
     return;
   }
   try {
     gamesManager.startNewGame(players, msg.channel as TextChannel);
   } catch (error) {
-    client.sendMessage(error.message);
+    textChannel.send(error.message);
     return;
   }
 
@@ -54,6 +55,6 @@ async function execute(msg: Message, args: string[]): Promise<void> {
     ''
   );
 
-  client.sendMessage(`Starting new game with players: ${playerNames}`);
+  textChannel.send(`Starting new game with players: ${playerNames}`);
 }
 export = command;

@@ -19,6 +19,7 @@ export class Seer extends Role {
     } else {
       await ChooseTableCard(gameState, player, 2);
     }
+    await player.send('You go back to sleep.');
     Log.info('Seer turn played.');
   }
 

@@ -29,8 +29,4 @@ export class Minion extends Role {
     }
     Log.info('Minion turn played.');
   }
-
-  clone(): Role {
-    return new Minion();
-  }
 }

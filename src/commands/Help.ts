@@ -1,4 +1,4 @@
-import { MessageEmbed } from 'discord.js';
+import { Message, MessageEmbed, TextChannel } from 'discord.js';
 import { Prefix } from '../Config';
 import { getDiscordInstance } from '../DiscordClient';
 import { Command } from '../types/Command';
@@ -10,7 +10,7 @@ const command: Command = {
   adminOnly: false,
 };
 
-function execute(): void {
+async function execute(msg: Message): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
@@ -42,7 +42,7 @@ function execute(): void {
     'Made with ❤️ by Sebastiaan Jansen / DrSkunk',
     'https://i.imgur.com/RPKkHMf.png'
   );
-
-  client.sendMessage(embed);
+  const textChannel = msg.channel as TextChannel;
+  textChannel.send(embed);
 }
 export = command;

@@ -43,35 +43,22 @@ export class GameState {
     return 'GAMESTATE TOSTRING';
   }
 
-  public clone(): GameState {
+  public copy(): GameState {
     const newPlayerRoles: PlayerRoles = {};
-    for (const role of Object.keys(this.playerRoles)) {
-      const roleName = role as RoleName;
-
-      if (!newPlayerRoles[roleName]) {
-        newPlayerRoles[roleName] = [];
-      }
-
-      const players = this.playerRoles[roleName];
-      if (players) {
-        for (const player of players) {
-          const toPush = newPlayerRoles[roleName];
-          if (newPlayerRoles[roleName] && Array.isArray(toPush)) {
-            toPush.push(player.clone());
-          }
-        }
-      }
+    for (const roleName of Object.keys(this.playerRoles) as RoleName[]) {
+      newPlayerRoles[roleName] = this.playerRoles[roleName]?.slice();
     }
 
-    const newTableRoles = [];
-    for (const role of Object.values(this.tableRoles)) {
-      newTableRoles.push(role.clone());
-    }
+    const newTableRoles = this.tableRoles.slice();
     return new GameState(newPlayerRoles, newTableRoles);
   }
 
   public getRole(player: Player): Role {
-    const roleName = this.getRoleName(player);
+    return this.getRoleByName(this.getRoleName(player));
+  }
+
+  //TODO: This shouldn't be here, but when this is added as a function to Role it introduces a circular dependency
+  public getRoleByName(roleName: RoleName): Role {
     switch (roleName) {
       case RoleName.doppelganger:
         return new Doppelganger();

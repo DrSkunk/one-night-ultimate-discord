@@ -25,8 +25,4 @@ export class Robber extends Role {
     }
     Log.info('Robber turn played.');
   }
-
-  clone(): Role {
-    return new Robber();
-  }
 }

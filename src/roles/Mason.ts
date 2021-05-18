@@ -37,8 +37,4 @@ export class Mason extends Role {
     }
     Log.info('Mason turn played.');
   }
-
-  clone(): Role {
-    return new Mason();
-  }
 }

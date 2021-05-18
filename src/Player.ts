@@ -25,13 +25,4 @@ export class Player {
   get user(): User {
     return this._user;
   }
-
-  public clone(): Player {
-    // TODO check if needed
-    const newPlayer = new Player(this._user);
-    // if (this.role) {
-    //   newPlayer.role = this.role.clone();
-    // }
-    return newPlayer;
-  }
 }

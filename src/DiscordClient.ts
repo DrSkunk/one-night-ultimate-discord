@@ -96,33 +96,17 @@ class DiscordClient {
       if (command) {
         const isAdmin = message.member?.hasPermission('ADMINISTRATOR');
         if (command.adminOnly && !isAdmin) {
-          this.sendMessage('This command is for admins only');
+          message.reply('This command is for admins only');
         } else {
           command.execute(message, args);
         }
       } else {
-        this.sendMessage(
+        message.reply(
           `Unrecognized command. Type \`${Prefix}help\` for the list of commands.`
         );
       }
     });
     this._client.login(this._token);
-  }
-
-  async sendMessage(
-    text: string | MessageEmbed,
-    attachment?: MessageAttachment
-  ) {
-    if (!this._channel) {
-      throw new Error(
-        'Could not send message, text channel was not initialised yet.'
-      );
-    }
-    if (attachment) {
-      return this._channel.send(text, attachment);
-    } else {
-      return this._channel.send(text);
-    }
   }
 }
 

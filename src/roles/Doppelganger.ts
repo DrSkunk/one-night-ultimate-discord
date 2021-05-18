@@ -48,8 +48,4 @@ You now also have the role ${chosenPlayerRole.name} and go back to sleep.`
     }
     Log.info('Doppelganger turn played.');
   }
-
-  clone(): Role {
-    return new Doppelganger();
-  }
 }

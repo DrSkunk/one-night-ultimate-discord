@@ -3,8 +3,8 @@ import { Client, Guild, User, SnowflakeUtil } from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { GameState } from '../src/GameState';
 import { Player } from '../src/Player';
-import { Doppelganger } from '../src/roles/Doppelganger';
-import { Villager } from '../src/roles/Villager';
+// import { Doppelganger } from '../src/roles/Doppelganger';
+// import { Villager } from '../src/roles/Villager';
 
 const client = new Client();
 const guild = new Guild(client, {
@@ -35,10 +35,10 @@ describe('GameState', function () {
     });
   });
 
-  describe('clone', function () {
-    it('it should completely deepclone the gamestate', function () {
+  describe('copy', function () {
+    it('it should shallow copy the gamestate', function () {
       const gameState = new GameState();
-      const clonedGameState = gameState.clone();
+      const clonedGameState = gameState.copy();
       expect(clonedGameState.playerRoles).to.have.property(
         RoleName.doppelganger
       );

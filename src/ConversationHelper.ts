@@ -57,7 +57,7 @@ Which do you choose?`);
       );
     }
   } catch (error) {
-    Log.error(error.message);
+    Log.error(error);
 
     await player.send(`Reaction timed out. Please select ${cardsText}.`);
     if (retryCounter + 1 < MAX_RETRIES) {
@@ -128,6 +128,7 @@ export async function AcknowledgeMessage(
 export async function ChoosePlayer(
   gameState: GameState,
   player: Player,
+  killMessage = false,
   switchCards = false,
   retryCounter = 0
 ): Promise<Player[]> {
@@ -154,9 +155,10 @@ export async function ChoosePlayer(
     (acc, player, i) => acc + `\n- ${reactions[i]}: ${player.name}`,
     ''
   );
+  const singlePickText = killMessage ? 'kill' : 'view the role';
   const text = switchCards
     ? 'Choose two players to switch their roles'
-    : 'Choose a player to view the role';
+    : `Choose a player to ${singlePickText}`;
   const message = await player.send(`${text}:${playerList}`);
   for (const reaction of reactions) {
     await message.react(reaction);
@@ -192,10 +194,16 @@ export async function ChoosePlayer(
       return [otherPlayers[cardIndex]];
     }
   } catch (error) {
-    Log.error(error.message);
+    Log.error(error);
     await player.send('Reaction timed out. Please select a card.');
     if (retryCounter + 1 < MAX_RETRIES) {
-      await ChoosePlayer(gameState, player, switchCards, retryCounter + 1);
+      await ChoosePlayer(
+        gameState,
+        player,
+        killMessage,
+        switchCards,
+        retryCounter + 1
+      );
     } else {
       throw new Error(
         'Waited to long for a response from one of the players. Aborting game.'
@@ -231,7 +239,7 @@ export async function ChoosePlayerOrTable(
     const reactionIndex = reactions.indexOf(emoji);
     return reactionIndex === 0;
   } catch (error) {
-    Log.error(error.message);
+    Log.error(error);
     await player.send('Reaction timed out. Please select a card.');
     if (retryCounter + 1 < MAX_RETRIES) {
       return await ChoosePlayerOrTable(gameState, player, retryCounter + 1);

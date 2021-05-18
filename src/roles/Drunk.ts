@@ -13,8 +13,4 @@ export class Drunk extends Role {
     await ChooseTableCard(gameState, player, 1, false);
     Log.info('Drunk turn played.');
   }
-
-  clone(): Role {
-    return new Drunk();
-  }
 }

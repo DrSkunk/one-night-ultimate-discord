@@ -8,4 +8,8 @@ export class Tanner extends Role {
   doTurn(): void {
     Log.info('Tanner turn played.');
   }
+
+  clone(): Role {
+    return new Tanner();
+  }
 }

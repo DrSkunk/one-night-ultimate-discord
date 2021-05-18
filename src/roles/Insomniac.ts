@@ -13,4 +13,8 @@ export class Insomniac extends Role {
     );
     Log.info('Insomniac turn played.');
   }
+
+  clone(): Role {
+    return new Insomniac();
+  }
 }

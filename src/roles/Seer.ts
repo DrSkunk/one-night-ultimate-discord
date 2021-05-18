@@ -21,4 +21,8 @@ export class Seer extends Role {
     }
     Log.info('Seer turn played.');
   }
+
+  clone(): Role {
+    return new Seer();
+  }
 }

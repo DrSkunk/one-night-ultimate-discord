@@ -8,6 +8,7 @@ export async function ChooseTableCard(
   gameState: GameState,
   player: Player,
   amountOfCardstoPick: number,
+  showResult = true,
   retryCounter = 0
 ): Promise<void> {
   const cardsText = amountOfCardstoPick
@@ -35,10 +36,15 @@ Which do you choose?`);
       const reaction = Object.values(collected.array())[0];
       const reactionIndex = reactions.indexOf(reaction.emoji.name);
       const cardRole = gameState.tableRoles[reactionIndex].name;
-
-      player.send(
-        `You see that the card ${reaction.emoji.name} has the role ${cardRole} and you go back to sleep.`
-      );
+      if (showResult) {
+        player.send(
+          `You see that the card ${reaction.emoji.name} has the role ${cardRole} and you go back to sleep.`
+        );
+      } else {
+        player.send(
+          `You take card ${reaction.emoji.name} and go back to sleep.`
+        );
+      }
     } else {
       let selectedRoles = '';
       for (const reaction of Object.values(collected.array())) {
@@ -59,6 +65,7 @@ Which do you choose?`);
         gameState,
         player,
         amountOfCardstoPick,
+        showResult,
         retryCounter + 1
       );
     } else {
@@ -66,6 +73,33 @@ Which do you choose?`);
         'Waited to long for a response from one of the players. Aborting game.'
       );
     }
+  }
+}
+
+export async function ChooseToDoAction(
+  player: Player,
+  text: string
+): Promise<boolean> {
+  const message = await player.send(text);
+  const reactions: string[] = ['✔️', '❌'];
+  for (const reaction of reactions) {
+    await message.react(reaction);
+  }
+  const filter = (reaction: MessageReaction) => {
+    return reactions.includes(reaction.emoji.name);
+  };
+
+  try {
+    const collected = await message.awaitReactions(filter, {
+      max: 1,
+      time: REACTION_WAIT_TIME,
+      errors: ['time'],
+    });
+    Log.log('Collected a reaction', collected.array());
+    return Object.values(collected.array())[0].emoji.name === reactions[0];
+  } catch (error) {
+    await player.send('Reaction timed out. ');
+    return false;
   }
 }
 
@@ -94,9 +128,9 @@ export async function AcknowledgeMessage(
 export async function ChoosePlayer(
   gameState: GameState,
   player: Player,
-  retryCounter = 0,
-  switchCards = false
-): Promise<void> {
+  switchCards = false,
+  retryCounter = 0
+): Promise<Player[]> {
   const allPlayers: Player[] = Object.values(
     gameState.playerRoles
   ).flat() as Player[];
@@ -147,24 +181,27 @@ export async function ChoosePlayer(
       player.send(
         `You switch the roles of ${otherPlayers[cardIndex1].name} and ${otherPlayers[cardIndex2].name}, and you go back to sleep.`
       );
+      return [otherPlayers[cardIndex1], otherPlayers[cardIndex2]];
     } else {
       const emoji = Object.values(collected.array())[0].emoji.name;
       const cardIndex = reactions.indexOf(emoji);
       const cardRole = otherPlayers[cardIndex].role?.name;
       player.send(
-        `You see that ${otherPlayers[cardIndex].name} has the role ${cardRole} and you go back to sleep.`
+        `You see that ${otherPlayers[cardIndex].name} has the role ${cardRole}.`
       );
+      return [otherPlayers[cardIndex]];
     }
   } catch (error) {
     Log.error(error.message);
     await player.send('Reaction timed out. Please select a card.');
     if (retryCounter + 1 < MAX_RETRIES) {
-      await ChoosePlayer(gameState, player, retryCounter + 1, switchCards);
+      await ChoosePlayer(gameState, player, switchCards, retryCounter + 1);
     } else {
       throw new Error(
         'Waited to long for a response from one of the players. Aborting game.'
       );
     }
+    return [];
   }
 }
 

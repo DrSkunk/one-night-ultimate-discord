@@ -8,4 +8,8 @@ export class Villager extends Role {
   doTurn(): void {
     Log.info('Villager turn played.');
   }
+
+  clone(): Role {
+    return new Villager();
+  }
 }

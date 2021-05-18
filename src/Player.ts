@@ -23,4 +23,16 @@ export class Player {
     }
     return this._guildMember.displayName;
   }
+
+  get guildMember(): GuildMember {
+    return this._guildMember;
+  }
+
+  public clone(): Player {
+    const newPlayer = new Player(this._guildMember);
+    if (this.role) {
+      newPlayer.role = this.role.clone();
+    }
+    return newPlayer;
+  }
 }

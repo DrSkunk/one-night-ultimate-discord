@@ -8,4 +8,8 @@ export class Hunter extends Role {
   doTurn(): void {
     Log.info('Hunter turn played.');
   }
+
+  clone(): Role {
+    return new Hunter();
+  }
 }

@@ -20,7 +20,9 @@ export abstract class Role {
     this._player = player;
   }
 
-  public toString = (): string => {
+  public toString(): string {
     return this.name;
-  };
+  }
+
+  abstract clone(): Role;
 }

@@ -4,7 +4,7 @@ import { RoleName } from './enums/RoleName';
 import { getGamesManagerInstance } from './GamesManager';
 import { Log } from './Log';
 import { Player } from './Player';
-import { GameState } from './types/GameState';
+import { GameState } from './GameState';
 import { Role } from './roles/Role';
 import { Doppelganger } from './roles/Doppelganger';
 import { Werewolf } from './roles/Werewolf';
@@ -20,6 +20,7 @@ import { Villager } from './roles/Villager';
 export class Game {
   private _players: Player[];
   private _textChannel: TextChannel;
+  private _startGameState: GameState;
   private _gamestate: GameState;
 
   constructor(players: GuildMember[], textChannel: TextChannel) {
@@ -29,8 +30,8 @@ export class Game {
     this._players = players.map((player) => new Player(player));
 
     this._textChannel = textChannel;
-    this._gamestate = {
-      playerRoles: {
+    this._startGameState = new GameState(
+      {
         [RoleName.doppelganger]: [],
         [RoleName.werewolf]: [],
         [RoleName.minion]: [],
@@ -41,8 +42,22 @@ export class Game {
         [RoleName.drunk]: [],
         [RoleName.insomniac]: [],
       },
-      tableRoles: [],
-    };
+      []
+    );
+    this._gamestate = new GameState(
+      {
+        [RoleName.doppelganger]: [],
+        [RoleName.werewolf]: [],
+        [RoleName.minion]: [],
+        [RoleName.mason]: [],
+        [RoleName.seer]: [],
+        [RoleName.robber]: [],
+        [RoleName.troublemaker]: [],
+        [RoleName.drunk]: [],
+        [RoleName.insomniac]: [],
+      },
+      []
+    );
   }
 
   public get textChannel(): TextChannel {
@@ -95,6 +110,10 @@ export class Game {
       }
     }
 
+    // this._startGameState = deepCopy(this._gamestate);
+    // this.cloneToStartGameState();
+    this._startGameState = this._gamestate.clone();
+
     const invalidPlayerIDs: string[] = [];
     for (const player of this._players) {
       try {
@@ -126,7 +145,7 @@ Please check your privacy settings.`
       // start game
       try {
         for (const role of callOrder) {
-          const players = this._gamestate.playerRoles[role];
+          const players = this._startGameState.playerRoles[role];
           if (players) {
             const roles = players.map((player) =>
               player.role?.doTurn(this._gamestate, player)
@@ -134,6 +153,8 @@ Please check your privacy settings.`
             await Promise.all(roles);
           }
         }
+        Log.info('Game has ended');
+        this.stopGame();
       } catch (error) {
         Log.error(error.message);
         this._textChannel.send(error.message);

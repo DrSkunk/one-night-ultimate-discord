@@ -37,4 +37,8 @@ Click on the reaction to acknowledge and go back to sleep.`;
     }
     Log.info('Werewolf turn played.');
   }
+
+  clone(): Role {
+    return new Werewolf();
+  }
 }

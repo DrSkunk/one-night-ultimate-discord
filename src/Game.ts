@@ -1,4 +1,4 @@
-import { GuildMember, TextChannel } from 'discord.js';
+import { User, TextChannel } from 'discord.js';
 import { CARDS_ON_TABLE, MAXIMUM_PLAYERS, MINIMUM_PLAYERS } from './Constants';
 import { RoleName } from './enums/RoleName';
 import { getGamesManagerInstance } from './GamesManager';
@@ -23,41 +23,15 @@ export class Game {
   private _startGameState: GameState;
   private _gamestate: GameState;
 
-  constructor(players: GuildMember[], textChannel: TextChannel) {
+  constructor(players: User[], textChannel: TextChannel) {
     if (players.length < MINIMUM_PLAYERS || players.length > MAXIMUM_PLAYERS) {
       throw new Error('Invalid amount of players');
     }
     this._players = players.map((player) => new Player(player));
 
     this._textChannel = textChannel;
-    this._startGameState = new GameState(
-      {
-        [RoleName.doppelganger]: [],
-        [RoleName.werewolf]: [],
-        [RoleName.minion]: [],
-        [RoleName.mason]: [],
-        [RoleName.seer]: [],
-        [RoleName.robber]: [],
-        [RoleName.troublemaker]: [],
-        [RoleName.drunk]: [],
-        [RoleName.insomniac]: [],
-      },
-      []
-    );
-    this._gamestate = new GameState(
-      {
-        [RoleName.doppelganger]: [],
-        [RoleName.werewolf]: [],
-        [RoleName.minion]: [],
-        [RoleName.mason]: [],
-        [RoleName.seer]: [],
-        [RoleName.robber]: [],
-        [RoleName.troublemaker]: [],
-        [RoleName.drunk]: [],
-        [RoleName.insomniac]: [],
-      },
-      []
-    );
+    this._startGameState = new GameState();
+    this._gamestate = new GameState();
   }
 
   public get textChannel(): TextChannel {
@@ -104,25 +78,19 @@ export class Game {
         this._gamestate.tableRoles.push(role);
       } else {
         const player = this._players[index];
-        player.role = role;
         if (callOrder.includes(role.name)) {
           this._gamestate.playerRoles[role.name]?.push(player);
         }
       }
     }
 
-    // this._startGameState = deepCopy(this._gamestate);
-    // this.cloneToStartGameState();
     this._startGameState = this._gamestate.clone();
 
     const invalidPlayerIDs: string[] = [];
     for (const player of this._players) {
       try {
-        if (player.role) {
-          await player.send('Your role is: ' + player?.role.name);
-        } else {
-          Log.error('There was a player without a role');
-        }
+        const roleName = this._gamestate.getRoleName(player);
+        await player.send('Your role is: ' + roleName);
       } catch (error) {
         invalidPlayerIDs.push(player.id);
       }
@@ -142,25 +110,25 @@ ${playerNames}
 Please check your privacy settings.`
       );
       this.stopGame();
-    } else {
-      // start game
-      try {
-        for (const role of callOrder) {
-          const players = this._startGameState.playerRoles[role];
-          if (players) {
-            const roles = players.map((player) =>
-              player.role?.doTurn(this._gamestate, player)
-            );
-            await Promise.all(roles);
-          }
+      return;
+    }
+    // start game
+    try {
+      for (const role of callOrder) {
+        const players = this._startGameState.playerRoles[role];
+        if (players) {
+          // const roles = players.map((player) =>
+          //   player.role?.doTurn(this._gamestate, player)
+          // );
+          // await Promise.all(roles);
         }
-        Log.info('Game has ended');
-        this.stopGame();
-      } catch (error) {
-        Log.error(error.message);
-        this._textChannel.send(error.message);
-        this.stopGame();
       }
+      Log.info('Game has ended');
+      this.stopGame();
+    } catch (error) {
+      Log.error(error.message);
+      this._textChannel.send(error.message);
+      this.stopGame();
     }
   }
 

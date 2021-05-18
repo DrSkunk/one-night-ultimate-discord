@@ -7,9 +7,10 @@ import { Role } from './Role';
 export class Insomniac extends Role {
   name = RoleName.insomniac;
 
-  async doTurn(_gameState: GameState, player: Player): Promise<void> {
+  async doTurn(gameState: GameState, player: Player): Promise<void> {
+    const role = gameState.getRoleName(player);
     player.send(
-      `You see that your current role is ${player.role?.name}\nYou go back to sleep.`
+      `You see that your current role is ${role}\nYou go back to sleep.`
     );
     Log.info('Insomniac turn played.');
   }

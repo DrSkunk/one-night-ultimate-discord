@@ -1,38 +1,37 @@
-import { GuildMember, Message } from 'discord.js';
-import { Role } from './roles/Role';
+import { User, Message } from 'discord.js';
 
 export class Player {
-  private _guildMember: GuildMember;
-  public role: Role | undefined;
+  private _user: User;
 
-  constructor(player: GuildMember) {
-    this._guildMember = player;
+  constructor(player: User) {
+    this._user = player;
   }
 
   public async send(message: string): Promise<Message> {
-    return await this._guildMember.send(message);
+    return await this._user.send(message);
   }
 
   get id(): string {
-    return this._guildMember.id;
+    return this._user.id;
   }
 
   get name(): string {
-    if (this._guildMember.nickname !== null) {
-      return this._guildMember.nickname;
+    if (this._user.nickname !== null) {
+      return this._user.nickname;
     }
-    return this._guildMember.displayName;
+    return this._user.displayName;
   }
 
-  get guildMember(): GuildMember {
-    return this._guildMember;
+  get user(): User {
+    return this._user;
   }
 
   public clone(): Player {
-    const newPlayer = new Player(this._guildMember);
-    if (this.role) {
-      newPlayer.role = this.role.clone();
-    }
+    // TODO check if needed
+    const newPlayer = new Player(this._user);
+    // if (this.role) {
+    //   newPlayer.role = this.role.clone();
+    // }
     return newPlayer;
   }
 }

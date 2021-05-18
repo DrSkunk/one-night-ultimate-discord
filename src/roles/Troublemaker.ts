@@ -16,12 +16,11 @@ export class Troublemaker extends Role {
       // TODO make compatible for multiple troublemakers. This is needed for a correct endgame state
       // To accomodate for the Doppelganger role
       const chosenPlayers = await ChoosePlayer(gameState, player, true);
-      if (chosenPlayers[0].role?.name && chosenPlayers[1].role?.name) {
-        gameState.playerRoles[chosenPlayers[0].role?.name] = [chosenPlayers[1]];
-        gameState.playerRoles[chosenPlayers[1].role?.name] = [chosenPlayers[0]];
-      } else {
-        throw new Error('No two players returned from troublemaker choice.');
-      }
+      const chosenPlayerRoleNames = chosenPlayers.map((p) =>
+        gameState.getRoleName(p)
+      );
+      gameState.playerRoles[chosenPlayerRoleNames[0]] = [chosenPlayers[1]];
+      gameState.playerRoles[chosenPlayerRoleNames[1]] = [chosenPlayers[0]];
     } else {
       await player.send("You don't switch roles and go back to sleep.");
     }

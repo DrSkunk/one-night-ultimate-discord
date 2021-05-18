@@ -1,9 +1,9 @@
 import Discord, {
   Collection,
-  GuildMember,
   MessageAttachment,
   MessageEmbed,
   TextChannel,
+  User,
 } from 'discord.js';
 import glob from 'glob';
 import { promisify } from 'util';
@@ -16,9 +16,9 @@ const globPromise = promisify(glob);
 class DiscordClient {
   ////////////////////////////
   // dummy players, remove after testing
-  async getDummyPlayers(): Promise<Collection<string, GuildMember>> {
+  async getDummyPlayers(): Promise<Collection<string, User>> {
     const userIds = ['185089816218697729', '649694899095994378'];
-    const users: Collection<string, GuildMember> = new Collection();
+    const users: Collection<string, User> = new Collection();
     for (const id of userIds) {
       const user = await this._channel.members.get(id);
       if (user) {
@@ -81,7 +81,6 @@ class DiscordClient {
     this._client.on('message', async (message) => {
       if (
         !message.guild ||
-        message.author.bot ||
         message.channel.id !== DiscordChannelId ||
         !message.content.startsWith(Prefix)
       ) {

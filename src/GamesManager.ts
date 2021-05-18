@@ -1,4 +1,4 @@
-import { Collection, GuildMember, TextChannel } from 'discord.js';
+import { Collection, User, TextChannel } from 'discord.js';
 import { Game } from './Game';
 import { Log } from './Log';
 
@@ -10,7 +10,7 @@ class GamesManager {
   }
 
   public startNewGame(
-    players: Collection<string, GuildMember>,
+    players: Collection<string, User>,
     textChannel: TextChannel
   ) {
     if (this._games.has(textChannel.id)) {

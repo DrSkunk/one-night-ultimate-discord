@@ -185,10 +185,10 @@ export async function ChoosePlayer(
     } else {
       const emoji = Object.values(collected.array())[0].emoji.name;
       const cardIndex = reactions.indexOf(emoji);
-      const cardRole = otherPlayers[cardIndex].role?.name;
-      player.send(
-        `You see that ${otherPlayers[cardIndex].name} has the role ${cardRole}.`
-      );
+      // const cardRole = otherPlayers[cardIndex].role?.name;
+      // player.send(
+      //   `You see that ${otherPlayers[cardIndex].name} has the role ${cardRole}.`
+      // );
       return [otherPlayers[cardIndex]];
     }
   } catch (error) {

@@ -1,6 +1,6 @@
 import { RoleName } from '../enums/RoleName';
+import { GameState } from '../GameState';
 import { Player } from '../Player';
-import { GameState } from '../types/GameState';
 
 export abstract class Role {
   abstract name: RoleName;

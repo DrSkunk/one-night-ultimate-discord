@@ -1,7 +1,7 @@
 import { RoleName } from '../enums/RoleName';
+import { GameState } from '../GameState';
 import { Log } from '../Log';
 import { Player } from '../Player';
-import { GameState } from '../types/GameState';
 import { Role } from './Role';
 
 export class Minion extends Role {

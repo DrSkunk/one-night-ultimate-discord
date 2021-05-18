@@ -79,7 +79,8 @@ export class Game {
 
     const randomRoles: Role[] = [
       new Werewolf(),
-      new Seer(),
+      new Werewolf(),
+      // new Seer(),
       new Villager(),
       new Villager(),
       new Werewolf(),

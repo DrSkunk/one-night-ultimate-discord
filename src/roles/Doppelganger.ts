@@ -1,8 +1,8 @@
 import { ChoosePlayer } from '../ConversationHelper';
 import { RoleName } from '../enums/RoleName';
+import { GameState } from '../GameState';
 import { Log } from '../Log';
 import { Player } from '../Player';
-import { GameState } from '../types/GameState';
 import { Drunk } from './Drunk';
 import { Robber } from './Robber';
 import { Role } from './Role';

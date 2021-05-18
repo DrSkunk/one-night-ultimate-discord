@@ -1,8 +1,8 @@
 import { MessageReaction } from 'discord.js';
 import { REACTION_WAIT_TIME, MAX_RETRIES } from './Constants';
+import { GameState } from './GameState';
 import { Log } from './Log';
 import { Player } from './Player';
-import { GameState } from './types/GameState';
 
 export async function ChooseTableCard(
   gameState: GameState,

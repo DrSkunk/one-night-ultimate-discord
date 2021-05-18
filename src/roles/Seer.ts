@@ -4,9 +4,9 @@ import {
   ChoosePlayerOrTable,
 } from '../ConversationHelper';
 import { RoleName } from '../enums/RoleName';
+import { GameState } from '../GameState';
 import { Log } from '../Log';
 import { Player } from '../Player';
-import { GameState } from '../types/GameState';
 import { Role } from './Role';
 
 export class Seer extends Role {

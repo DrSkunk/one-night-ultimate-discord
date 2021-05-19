@@ -1,51 +1,48 @@
 import { ChoosePlayer } from '../ConversationHelper';
+import { ChoosePlayerType } from '../enums/ChoosePlayer';
 import { RoleName } from '../enums/RoleName';
-import { GameState } from '../GameState';
+import { Game } from '../Game';
 import { Log } from '../Log';
 import { Player } from '../Player';
-import { Role } from './Role';
+import { isInstantRole, isMimicRole, Role } from './Role';
 
 export class Doppelganger extends Role {
-  name = RoleName.doppelganger;
+  readonly name = RoleName.doppelganger;
   retryCounter = 0;
 
-  async doTurn(gameState: GameState, player: Player): Promise<void> {
-    const chosenPlayer = (await ChoosePlayer(gameState, player))[0];
+  async doTurn(game: Game, player: Player): Promise<void> {
+    const gameState = game.gameState;
+    const chosenPlayer = (
+      await ChoosePlayer(gameState, player, ChoosePlayerType.clone)
+    )[0];
     const chosenPlayerRole = gameState.getRole(chosenPlayer);
 
-    const mimicRoles = [
-      RoleName.doppelganger,
-      RoleName.werewolf,
-      RoleName.minion,
-      RoleName.mason,
-      RoleName.insomniac,
-    ];
-    if (mimicRoles.includes(chosenPlayerRole.name)) {
-      gameState.playerRoles[chosenPlayerRole.name]?.push(player);
+    if (isMimicRole(chosenPlayerRole.name)) {
+      game.moveDoppelGanger(chosenPlayerRole.name);
       await player.send(
         `You see that ${chosenPlayer.name} has the role ${chosenPlayerRole.name}
 You now also have the role ${chosenPlayerRole.name}.
 You go back to sleep.`
       );
+      return;
     }
-    const instantRoles = [
-      RoleName.seer,
-      RoleName.robber,
-      RoleName.troublemaker,
-      RoleName.drunk,
-    ];
-    if (instantRoles.includes(chosenPlayerRole.name)) {
+
+    if (isInstantRole(chosenPlayerRole.name)) {
       await player.send(
         `You see that ${chosenPlayer.name} has the role ${chosenPlayerRole.name}.
 You now also have the role ${chosenPlayerRole.name} and immediately execute it.`
       );
-      chosenPlayerRole.doTurn(gameState, player);
-    } else {
-      await player.send(
-        `You see that ${chosenPlayer.name} has the role ${chosenPlayerRole.name}.
-You now also have the role ${chosenPlayerRole.name} and go back to sleep.`
-      );
+      await chosenPlayerRole.doTurn(game, player);
+      game.newDoppelgangerRole = chosenPlayerRole.name;
+      return;
+
+      // Only roles are left that do not wake up, Villager, Hunter and Tanner
     }
+    await player.send(
+      `You see that ${chosenPlayer.name} has the role ${chosenPlayerRole.name}.
+You now also have the role ${chosenPlayerRole.name} and go back to sleep.`
+    );
+
     Log.info('Doppelganger turn played.');
   }
 }

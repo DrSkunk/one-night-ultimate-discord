@@ -1,14 +1,15 @@
 import { AcknowledgeMessage, ChooseTableCard } from '../ConversationHelper';
 import { RoleName } from '../enums/RoleName';
-import { GameState } from '../GameState';
+import { Game } from '../Game';
 import { Log } from '../Log';
 import { Player } from '../Player';
 import { Role } from './Role';
 
 export class Werewolf extends Role {
-  name = RoleName.werewolf;
+  readonly name = RoleName.werewolf;
 
-  async doTurn(gameState: GameState, player: Player): Promise<void> {
+  async doTurn(game: Game, player: Player): Promise<void> {
+    const gameState = game.gameState;
     if (gameState.playerRoles.werewolf?.length !== 1) {
       const werewolves = gameState.playerRoles.werewolf;
       // Assert that there are werewolves

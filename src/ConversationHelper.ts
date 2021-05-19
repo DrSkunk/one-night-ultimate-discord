@@ -1,8 +1,66 @@
-import { MessageReaction } from 'discord.js';
-import { REACTION_WAIT_TIME, MAX_RETRIES } from './Constants';
+import { MessageReaction, TextChannel, User } from 'discord.js';
+import { REACTION_WAIT_TIME, MAX_RETRIES, SETUP_WAIT_TIME } from './Constants';
+import { ChoosePlayerType } from './enums/ChoosePlayer';
+import { ReactionChoice } from './enums/ReactionChoice';
+import { RoleName } from './enums/RoleName';
 import { GameState } from './GameState';
 import { Log } from './Log';
 import { Player } from './Player';
+
+export async function ChooseRoles(
+  author: User,
+  textChannel: TextChannel,
+  amountToPick: number
+): Promise<RoleName[]> {
+  const specialRoles = {
+    [ReactionChoice['0️⃣']]: RoleName.doppelganger,
+    [ReactionChoice['1️⃣']]: RoleName.drunk,
+    [ReactionChoice['2️⃣']]: RoleName.hunter,
+    [ReactionChoice['3️⃣']]: RoleName.insomniac,
+    [ReactionChoice['4️⃣']]: RoleName.mason,
+    [ReactionChoice['5️⃣']]: RoleName.mason,
+    [ReactionChoice['6️⃣']]: RoleName.minion,
+    [ReactionChoice['7️⃣']]: RoleName.robber,
+    [ReactionChoice['8️⃣']]: RoleName.seer,
+    [ReactionChoice['9️⃣']]: RoleName.tanner,
+    [ReactionChoice['🔟']]: RoleName.troublemaker,
+  };
+  const rolesText = Object.keys(specialRoles).reduce(
+    (acc, emoji) =>
+      acc + `\n${emoji}: ${specialRoles[emoji as ReactionChoice]}`,
+    ''
+  );
+  const message = await textChannel.send(
+    `You must pick ${amountToPick} roles, which do you want to add?${rolesText}`
+  );
+  for (const reaction of Object.keys(specialRoles)) {
+    await message.react(reaction);
+  }
+
+  const filter = (reaction: MessageReaction, user: User) => {
+    return (
+      Object.keys(specialRoles).includes(reaction.emoji.name) &&
+      user.id === author.id
+    );
+  };
+  try {
+    const collected = await message.awaitReactions(filter, {
+      max: amountToPick,
+      time: SETUP_WAIT_TIME,
+      errors: ['time'],
+    });
+    Log.log('Collected reaction(s)', collected.array());
+
+    const roleNames = Object.values(collected.array()).map((reaction) => {
+      const reactionChoice = reaction.emoji.name as ReactionChoice;
+      return specialRoles[reactionChoice];
+    });
+
+    return roleNames;
+  } catch (error) {
+    throw new Error('Waited too long for a response. Aborting...');
+  }
+}
 
 export async function ChooseTableCard(
   gameState: GameState,
@@ -128,8 +186,7 @@ export async function AcknowledgeMessage(
 export async function ChoosePlayer(
   gameState: GameState,
   player: Player,
-  killMessage = false,
-  switchCards = false,
+  choosePlayerType: ChoosePlayerType = ChoosePlayerType.view,
   retryCounter = 0
 ): Promise<Player[]> {
   const allPlayers: Player[] = Object.values(
@@ -155,10 +212,22 @@ export async function ChoosePlayer(
     (acc, player, i) => acc + `\n- ${reactions[i]}: ${player.name}`,
     ''
   );
-  const singlePickText = killMessage ? 'kill' : 'view the role';
-  const text = switchCards
-    ? 'Choose two players to switch their roles'
-    : `Choose a player to ${singlePickText}`;
+  let text = '';
+  switch (choosePlayerType) {
+    case ChoosePlayerType.kill:
+      text = 'Choose a player to kill';
+      break;
+    case ChoosePlayerType.switch:
+      text = 'Choose two players to switch their roles';
+      break;
+    case ChoosePlayerType.clone:
+      text = 'Choose a player to clone their role';
+      break;
+    case ChoosePlayerType.view:
+      text = 'Choose a player to view their role';
+      break;
+  }
+
   const message = await player.send(`${text}:${playerList}`);
   for (const reaction of reactions) {
     await message.react(reaction);
@@ -167,7 +236,7 @@ export async function ChoosePlayer(
     return reactions.includes(reaction.emoji.name);
   };
   try {
-    const max = switchCards ? 2 : 1;
+    const max = choosePlayerType === ChoosePlayerType.switch ? 2 : 1;
     const collected = await message.awaitReactions(filter, {
       max,
       time: REACTION_WAIT_TIME,
@@ -175,7 +244,7 @@ export async function ChoosePlayer(
     });
     Log.log('Collected reaction(s)', collected.array());
 
-    if (switchCards) {
+    if (choosePlayerType === ChoosePlayerType.switch) {
       const emoji1 = Object.values(collected.array())[0].emoji.name;
       const emoji2 = Object.values(collected.array())[1].emoji.name;
       const cardIndex1 = reactions.indexOf(emoji1);
@@ -187,23 +256,14 @@ export async function ChoosePlayer(
     } else {
       const emoji = Object.values(collected.array())[0].emoji.name;
       const cardIndex = reactions.indexOf(emoji);
-      // const cardRole = otherPlayers[cardIndex].role?.name;
-      // player.send(
-      //   `You see that ${otherPlayers[cardIndex].name} has the role ${cardRole}.`
-      // );
+
       return [otherPlayers[cardIndex]];
     }
   } catch (error) {
     Log.error(error);
-    await player.send('Reaction timed out. Please select a card.');
+    await player.send('Reaction timed out. Please make a selection.');
     if (retryCounter + 1 < MAX_RETRIES) {
-      await ChoosePlayer(
-        gameState,
-        player,
-        killMessage,
-        switchCards,
-        retryCounter + 1
-      );
+      await ChoosePlayer(gameState, player, choosePlayerType, retryCounter + 1);
     } else {
       throw new Error(
         'Waited to long for a response from one of the players. Aborting game.'
@@ -240,7 +300,7 @@ export async function ChoosePlayerOrTable(
     return reactionIndex === 0;
   } catch (error) {
     Log.error(error);
-    await player.send('Reaction timed out. Please select a card.');
+    await player.send('Reaction timed out. Please make a selection.');
     if (retryCounter + 1 < MAX_RETRIES) {
       return await ChoosePlayerOrTable(gameState, player, retryCounter + 1);
     } else {

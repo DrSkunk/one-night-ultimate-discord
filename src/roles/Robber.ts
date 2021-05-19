@@ -1,14 +1,15 @@
 import { ChoosePlayer, ChooseToDoAction } from '../ConversationHelper';
 import { RoleName } from '../enums/RoleName';
-import { GameState } from '../GameState';
+import { Game } from '../Game';
 import { Log } from '../Log';
 import { Player } from '../Player';
 import { Role } from './Role';
 
 export class Robber extends Role {
-  name = RoleName.robber;
+  readonly name = RoleName.robber;
 
-  async doTurn(gameState: GameState, player: Player): Promise<void> {
+  async doTurn(game: Game, player: Player): Promise<void> {
+    const gameState = game.gameState;
     const text =
       'You wake up. You can now steal the role of another player. Do you want to do this?';
     const stealRole = await ChooseToDoAction(player, text);

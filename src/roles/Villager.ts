@@ -3,7 +3,7 @@ import { Log } from '../Log';
 import { Role } from './Role';
 
 export class Villager extends Role {
-  name = RoleName.villager;
+  readonly name = RoleName.villager;
 
   doTurn(): void {
     Log.info('Villager turn played.');

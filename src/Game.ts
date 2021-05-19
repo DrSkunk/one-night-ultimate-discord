@@ -2,6 +2,7 @@ import { User, TextChannel } from 'discord.js';
 import {
   CARDS_ON_TABLE,
   MAXIMUM_PLAYERS,
+  MAX_ROLES_COUNT,
   MINIMUM_PLAYERS,
   ROUND_TIME_MILLISECONDS,
   ROUND_TIME_MINUTES,
@@ -11,39 +12,37 @@ import { getGamesManagerInstance } from './GamesManager';
 import { Log } from './Log';
 import { Player } from './Player';
 import { GameState } from './GameState';
-import { Role } from './roles/Role';
-import { Doppelganger } from './roles/Doppelganger';
-import { Werewolf } from './roles/Werewolf';
-import { Minion } from './roles/Minion';
-import { Mason } from './roles/Mason';
-import { Seer } from './roles/Seer';
-import { Robber } from './roles/Robber';
-import { Troublemaker } from './roles/Troublemaker';
-import { Drunk } from './roles/Drunk';
-import { Insomniac } from './roles/Insomniac';
-import { Villager } from './roles/Villager';
-import { Hunter } from './roles/Hunter';
-import { Tanner } from './roles/Tanner';
+import { isMimicRole, Role } from './roles/Role';
 import { ChoosePlayer } from './ConversationHelper';
 import { Time } from './types/Time';
+import { ChoosePlayerType } from './enums/ChoosePlayer';
 
 export class Game {
-  private _players: Player[];
-  private _textChannel: TextChannel;
+  private readonly _players: Player[];
+  private readonly _textChannel: TextChannel;
+  private readonly _chosenRoles: RoleName[];
   private _startGameState: GameState;
-  private _gamestate: GameState;
+  public readonly gameState: GameState;
+  private _started: boolean;
   private _startTime: Date | null;
+  public newDoppelgangerRole: RoleName | null;
 
-  constructor(players: User[], textChannel: TextChannel) {
+  constructor(
+    players: User[],
+    textChannel: TextChannel,
+    chosenRoles: RoleName[]
+  ) {
     if (players.length < MINIMUM_PLAYERS || players.length > MAXIMUM_PLAYERS) {
       throw new Error('Invalid amount of players');
     }
     this._players = players.map((player) => new Player(player));
-
     this._textChannel = textChannel;
+    this._chosenRoles = chosenRoles;
     this._startGameState = new GameState();
-    this._gamestate = new GameState();
+    this.gameState = new GameState();
+    this._started = false;
     this._startTime = null;
+    this.newDoppelgangerRole = null;
   }
 
   public get remainingTime(): Time {
@@ -59,27 +58,38 @@ export class Game {
     return this._textChannel;
   }
 
+  public get tagPlayersText(): string {
+    return this._players.reduce((acc, member) => `${acc}, <@${member.id}>`, '');
+  }
+
+  public moveDoppelGanger(name: RoleName): void {
+    const playerList =
+      this.gameState.playerRoles.doppelganger?.slice() as Player[];
+    this.gameState.playerRoles[name]?.push(...playerList);
+    this.gameState.playerRoles.doppelganger = [];
+    this.newDoppelgangerRole = name;
+  }
+
   public async start(): Promise<void> {
-    // TODO make roles configurable;
-    // three cards on table, two players to test
-    // = 5 roles
+    if (this._started) {
+      throw new Error('Game has already started');
+    }
 
-    // const randomRoles: Role[] = shuffle([
-    //   new Werewolf(),
-    //   new Werewolf(),
-    //   new Villager(),
-    //   new Villager(),
-    //   new Villager(),
-    // ]) as Role[];
+    this._textChannel.send(
+      `Starting new game with players: ${this.tagPlayersText}
+And with these roles: ${this._chosenRoles.join(', ')}`
+    );
+    //     `Created a new game for channel "#${textChannel.name}" with ${
+    //       players.size
+    //     } players
+    // And with these roles: ${roleNames.join(', ')}`
+    this._started = true;
 
-    const randomRoles: Role[] = [
-      new Werewolf(),
-      // new Werewolf(),
-      new Seer(),
-      new Villager(),
-      new Villager(),
-      new Werewolf(),
-    ];
+    const chosenRoles = shuffle(
+      this._chosenRoles.map((roleName) =>
+        this.gameState.getRoleByName(roleName)
+      )
+    ) as Role[];
 
     const callOrder = [
       RoleName.doppelganger,
@@ -93,24 +103,38 @@ export class Game {
       RoleName.insomniac,
     ];
 
-    for (let index = 0; index < randomRoles.length; index++) {
-      const role = randomRoles[index];
-      if (index >= randomRoles.length - CARDS_ON_TABLE) {
-        this._gamestate.tableRoles.push(role);
+    for (let index = 0; index < chosenRoles.length; index++) {
+      const role = chosenRoles[index];
+      if (index >= chosenRoles.length - CARDS_ON_TABLE) {
+        this.gameState.tableRoles.push(role);
       } else {
         const player = this._players[index];
         if (callOrder.includes(role.name)) {
-          this._gamestate.playerRoles[role.name]?.push(player);
+          this.gameState.playerRoles[role.name]?.push(player);
+        }
+      }
+    }
+    for (const roleName of Object.values(RoleName)) {
+      const roles = this.gameState.playerRoles[roleName];
+      if (roles) {
+        const tableRolesLength = this.gameState.tableRoles.filter(
+          (role) => role.name === roleName
+        ).length;
+        const roleCount = roles.length + tableRolesLength;
+        if (roleCount > MAX_ROLES_COUNT[roleName]) {
+          throw new Error(
+            `Invalid role distribution, There are ${roleCount} with role ${roleName} when there is a maximum of ${MAX_ROLES_COUNT[roleName]}`
+          );
         }
       }
     }
 
-    this._startGameState = this._gamestate.copy();
+    this._startGameState = this.gameState.copy();
 
     const invalidPlayerIDs: string[] = [];
     for (const player of this._players) {
       try {
-        const roleName = this._gamestate.getRoleName(player);
+        const roleName = this.gameState.getRoleName(player);
         await player.send('Your role is: ' + roleName);
       } catch (error) {
         invalidPlayerIDs.push(player.id);
@@ -135,12 +159,23 @@ Please check your privacy settings.`
     }
     // start game
     try {
-      for (const role of callOrder) {
-        const players = this._startGameState.playerRoles[role];
+      for (const roleName of callOrder) {
+        const players = this._startGameState.playerRoles[roleName];
         if (players) {
-          const roles = players.map((player) =>
-            this._gamestate.getRoleByName(role).doTurn(this._gamestate, player)
-          );
+          const role = this.gameState.getRoleByName(roleName);
+          let roles = players.map((player) => role.doTurn(this, player));
+          if (
+            this.newDoppelgangerRole === roleName &&
+            isMimicRole(roleName) &&
+            this._startGameState.playerRoles.doppelganger &&
+            this._startGameState.playerRoles.doppelganger?.length > 0
+          ) {
+            const doppelGangers =
+              this._startGameState.playerRoles.doppelganger.map((dplgnr) =>
+                role.doTurn(this, dplgnr)
+              );
+            roles = roles.concat(doppelGangers);
+          }
           await Promise.all(roles);
         }
       }
@@ -150,66 +185,65 @@ Please check your privacy settings.`
       this.stopGame();
     }
 
-    const playerNames = this._players.reduce(
-      (acc, member) => `${acc}, <@${member.id}>`,
-      ''
-    );
-
     this._startTime = new Date();
 
     this._textChannel.send(
-      `${playerNames}The night is over! You now have ${ROUND_TIME_MINUTES} minutes to figure out what has happened!`
+      `${this.tagPlayersText}The night is over! You now have ${ROUND_TIME_MINUTES} minutes to figure out what has happened!`
     );
 
     // TODO add '30 seconds remaining' text
-    setTimeout(async () => {
-      await this._textChannel.send(
-        `Everybody stop talking! That means you ${playerNames}
+    setTimeout(() => this.endGame(), ROUND_TIME_MILLISECONDS);
+  }
+
+  private async endGame() {
+    await this._textChannel.send(
+      `Everybody stop talking! That means you ${this.tagPlayersText}
 Reply to the DM you just received to vote for who to kill.`
-      );
+    );
 
-      const choosePromises = this._players.map((player) =>
-        ChoosePlayer(this._gamestate, player)
-      );
-      const chosenPlayers = (await Promise.all(choosePromises)).flat();
-      const playerMap: { [key: string]: { count: number; player: Player } } =
-        {};
-      for (const player of chosenPlayers) {
-        if (playerMap[player.id]) {
-          playerMap[player.id].count++;
-        } else {
-          playerMap[player.id] = { player, count: 1 };
-        }
-      }
-      const maxCount = Object.values(playerMap).reduce(
-        (acc, { count }) => Math.max(acc, count),
-        0
-      );
-
-      // If no player receives more than one vote, no one dies.
-      if (maxCount === 1) {
-        // Nobody died!
+    const choosePromises = this._players.map((player) =>
+      ChoosePlayer(this.gameState, player, ChoosePlayerType.kill)
+    );
+    const chosenPlayers = (await Promise.all(choosePromises)).flat();
+    const playerMap: { [key: string]: { count: number; player: Player } } = {};
+    for (const player of chosenPlayers) {
+      if (playerMap[player.id]) {
+        playerMap[player.id].count++;
       } else {
-        const playerNamesWhoDie = Object.values(playerMap)
-          .filter(({ count }) => count === maxCount)
-          .map(({ player }) => `<@${player.id}>`);
-
-        const multipleText =
-          playerNamesWhoDie.length === 1 ? 'player dies' : 'players die';
-
-        const playerNamesWhoDieString = new Intl.ListFormat().format(
-          playerNamesWhoDie
-        );
-        const text = `The following ${multipleText}: ${playerNamesWhoDieString}`;
-        await this._textChannel.send(text);
+        playerMap[player.id] = { player, count: 1 };
       }
-      // The player with the most votes dies and reveals his card.
-      // In case of a tie, all players tied with the most votes die and reveal their cards.
+    }
+    const maxCount = Object.values(playerMap).reduce(
+      (acc, { count }) => Math.max(acc, count),
+      0
+    );
 
-      Log.info('Game has ended');
-      await this._textChannel.send('Game has ended');
-      this.stopGame();
-    }, ROUND_TIME_MILLISECONDS);
+    // If no player receives more than one vote, no one dies.
+    if (maxCount === 1) {
+      await this._textChannel.send('Nobody died!');
+    } else {
+      const playerNamesWhoDie = Object.values(playerMap)
+        .filter(({ count }) => count === maxCount)
+        .map(({ player }) => `<@${player.id}>`);
+
+      const multipleText =
+        playerNamesWhoDie.length === 1 ? 'player dies' : 'players die';
+
+      // TODO Replace when Intl.ListFormat is supported
+      // https://stackoverflow.com/questions/57964557/how-can-i-add-types-to-use-intl-listformat-in-node-v12
+      // const playerNamesWhoDieString = new Intl.ListFormat().format(
+      //   playerNamesWhoDie
+      // );
+      const playerNamesWhoDieString = playerNamesWhoDie.join(', ');
+      const text = `The following ${multipleText}: ${playerNamesWhoDieString}`;
+      await this._textChannel.send(text);
+    }
+    // The player with the most votes dies and reveals his card.
+    // In case of a tie, all players tied with the most votes die and reveal their cards.
+
+    Log.info('Game has ended');
+    await this._textChannel.send('Game has ended');
+    this.stopGame();
   }
 
   private stopGame() {

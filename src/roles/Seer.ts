@@ -4,15 +4,16 @@ import {
   ChoosePlayerOrTable,
 } from '../ConversationHelper';
 import { RoleName } from '../enums/RoleName';
-import { GameState } from '../GameState';
+import { Game } from '../Game';
 import { Log } from '../Log';
 import { Player } from '../Player';
 import { Role } from './Role';
 
 export class Seer extends Role {
-  name = RoleName.seer;
+  readonly name = RoleName.seer;
 
-  async doTurn(gameState: GameState, player: Player): Promise<void> {
+  async doTurn(game: Game, player: Player): Promise<void> {
+    const gameState = game.gameState;
     const lookAtPlayerCards = await ChoosePlayerOrTable(gameState, player);
     if (lookAtPlayerCards) {
       await ChoosePlayer(gameState, player);

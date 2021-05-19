@@ -1,7 +1,9 @@
 import Discord, {
   Collection,
+  Guild,
   MessageAttachment,
   MessageEmbed,
+  SnowflakeUtil,
   TextChannel,
   User,
 } from 'discord.js';
@@ -25,6 +27,13 @@ class DiscordClient {
         users.set(user.id, user);
       }
     }
+    // const guild = new Guild(this._client, { id: SnowflakeUtil.generate() });
+    // const dummyUser = new User(
+    //   this._client,
+    //   { id: SnowflakeUtil.generate() },
+    //   guild
+    // );
+    // users.set(dummyUser.id, dummyUser);
     return users;
   }
   ///////////////////////////

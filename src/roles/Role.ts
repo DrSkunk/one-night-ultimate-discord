@@ -1,9 +1,26 @@
 import { RoleName } from '../enums/RoleName';
-import { GameState } from '../GameState';
+import { Game } from '../Game';
 import { Player } from '../Player';
 
 export abstract class Role {
-  abstract name: RoleName;
+  abstract readonly name: RoleName;
 
-  abstract doTurn(gameState: GameState, player: Player): void;
+  abstract doTurn(gameState: Game, player: Player): void;
+}
+export function isMimicRole(roleName: RoleName): boolean {
+  return [
+    RoleName.werewolf,
+    RoleName.minion,
+    RoleName.mason,
+    RoleName.insomniac,
+  ].includes(roleName);
+}
+
+export function isInstantRole(roleName: RoleName): boolean {
+  return [
+    RoleName.seer,
+    RoleName.robber,
+    RoleName.troublemaker,
+    RoleName.drunk,
+  ].includes(roleName);
 }

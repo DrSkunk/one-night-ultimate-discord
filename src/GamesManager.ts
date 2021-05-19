@@ -1,4 +1,5 @@
 import { Collection, User, TextChannel } from 'discord.js';
+import { RoleName } from './enums/RoleName';
 import { Game } from './Game';
 import { Log } from './Log';
 
@@ -11,7 +12,8 @@ class GamesManager {
 
   public startNewGame(
     players: Collection<string, User>,
-    textChannel: TextChannel
+    textChannel: TextChannel,
+    roleNames: RoleName[]
   ): void {
     if (this._games.has(textChannel.id)) {
       throw new Error(
@@ -19,11 +21,13 @@ class GamesManager {
       );
     }
 
-    const game = new Game(players.array(), textChannel);
+    const game = new Game(players.array(), textChannel, roleNames);
 
     this._games.set(textChannel.id, game);
     Log.info(
-      `Created a new game for channel "#${textChannel.name}" with ${players.size} players`
+      `Created a new game for channel "#${textChannel.name}" with ${
+        players.size
+      } players and with these roles: ${roleNames.join(', ')}`
     );
     game.start();
   }

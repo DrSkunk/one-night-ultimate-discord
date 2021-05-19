@@ -1,5 +1,8 @@
 import { Message, TextChannel } from 'discord.js';
+import { CARDS_ON_TABLE, MAX_ROLES_COUNT } from '../Constants';
+import { ChooseRoles } from '../ConversationHelper';
 import { getDiscordInstance } from '../DiscordClient';
+import { RoleName } from '../enums/RoleName';
 import { getGamesManagerInstance } from '../GamesManager';
 import { Command } from '../types/Command';
 
@@ -43,18 +46,23 @@ async function execute(msg: Message, args: string[]): Promise<void> {
     textChannel.send(`Empty voice channel`);
     return;
   }
-  try {
-    gamesManager.startNewGame(players, msg.channel as TextChannel);
-  } catch (error) {
-    textChannel.send(error.message);
-    return;
-  }
 
-  const playerNames = players.reduce(
-    (acc, member) => `${acc}, <@${member.id}>`,
-    ''
+  const author = msg.author;
+  const amountToPick =
+    players.size - MAX_ROLES_COUNT[RoleName.werewolf] + CARDS_ON_TABLE;
+  const werewolves = Array.from(
+    { length: MAX_ROLES_COUNT[RoleName.werewolf] },
+    () => RoleName.werewolf
   );
+  const roles = [
+    ...werewolves,
+    ...(await ChooseRoles(author, textChannel, amountToPick)),
+  ];
 
-  textChannel.send(`Starting new game with players: ${playerNames}`);
+  try {
+    await gamesManager.startNewGame(players, msg.channel as TextChannel, roles);
+  } catch (error) {
+    await textChannel.send(error.message);
+  }
 }
 export = command;

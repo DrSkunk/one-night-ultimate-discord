@@ -223,9 +223,9 @@ Reply to the DM you just received to vote for who to kill.`
     if (maxCount === 1) {
       await this._textChannel.send('Nobody died!');
       if (this.gameState.playerRoles.werewolf?.length === 0) {
-        whoWon = 'Werewolf';
-      } else {
         whoWon = 'Villagers';
+      } else {
+        whoWon = 'Werewolf';
       }
     } else {
       const playersWhoDie = Object.values(playerMap)

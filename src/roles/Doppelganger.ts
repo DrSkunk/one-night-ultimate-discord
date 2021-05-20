@@ -13,7 +13,7 @@ export class Doppelganger extends Role {
   async doTurn(game: Game, player: Player): Promise<void> {
     const gameState = game.gameState;
     const chosenPlayer = (
-      await ChoosePlayer(gameState, player, ChoosePlayerType.clone)
+      await ChoosePlayer(game.players, player, ChoosePlayerType.clone)
     )[0];
     const chosenPlayerRole = gameState.getRole(chosenPlayer);
 

@@ -16,7 +16,7 @@ export class Robber extends Role {
     if (stealRole) {
       // TODO make compatible for multiple robbers. This is needed for a correct endgame state
       // To accomodate for the Doppelganger role
-      const chosenPlayer = (await ChoosePlayer(gameState, player))[0];
+      const chosenPlayer = (await ChoosePlayer(game.players, player))[0];
       const chosenPlayerRoleName = gameState.getRoleName(chosenPlayer);
 
       gameState.playerRoles.robber = [chosenPlayer];

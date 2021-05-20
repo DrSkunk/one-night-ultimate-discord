@@ -16,7 +16,7 @@ export class Seer extends Role {
     const gameState = game.gameState;
     const lookAtPlayerCards = await ChoosePlayerOrTable(gameState, player);
     if (lookAtPlayerCards) {
-      await ChoosePlayer(gameState, player);
+      await ChoosePlayer(game.players, player);
     } else {
       await ChooseTableCard(gameState, player, 2);
     }

@@ -18,13 +18,14 @@ import { Time } from './types/Time';
 import { ChoosePlayerType } from './enums/ChoosePlayer';
 
 export class Game {
-  private readonly _players: Player[];
+  public readonly players: Player[];
   private readonly _textChannel: TextChannel;
   private readonly _chosenRoles: RoleName[];
   private _startGameState: GameState;
   public readonly gameState: GameState;
   private _started: boolean;
   private _startTime: Date | null;
+  public doppelgangerPlayer: Player | null;
   public newDoppelgangerRole: RoleName | null;
 
   constructor(
@@ -35,13 +36,14 @@ export class Game {
     if (players.length < MINIMUM_PLAYERS || players.length > MAXIMUM_PLAYERS) {
       throw new Error('Invalid amount of players');
     }
-    this._players = players.map((player) => new Player(player));
+    this.players = players.map((player) => new Player(player));
     this._textChannel = textChannel;
     this._chosenRoles = chosenRoles;
     this._startGameState = new GameState();
     this.gameState = new GameState();
     this._started = false;
     this._startTime = null;
+    this.doppelgangerPlayer = null;
     this.newDoppelgangerRole = null;
   }
 
@@ -59,13 +61,14 @@ export class Game {
   }
 
   public get tagPlayersText(): string {
-    return this._players.reduce((acc, member) => `${acc}, <@${member.id}>`, '');
+    return this.players.reduce((acc, member) => `${acc}, <@${member.id}>`, '');
   }
 
   public moveDoppelGanger(name: RoleName): void {
-    const playerList =
-      this.gameState.playerRoles.doppelganger?.slice() as Player[];
-    this.gameState.playerRoles[name]?.push(...playerList);
+    this.doppelgangerPlayer = (
+      this.gameState.playerRoles.doppelganger?.slice() as Player[]
+    )[0];
+    this.gameState.playerRoles[name]?.push(this.doppelgangerPlayer);
     this.gameState.playerRoles.doppelganger = [];
     this.newDoppelgangerRole = name;
   }
@@ -79,10 +82,6 @@ export class Game {
       `Starting new game with players: ${this.tagPlayersText}
 And with these roles: ${this._chosenRoles.join(', ')}`
     );
-    //     `Created a new game for channel "#${textChannel.name}" with ${
-    //       players.size
-    //     } players
-    // And with these roles: ${roleNames.join(', ')}`
     this._started = true;
 
     const chosenRoles = shuffle(
@@ -108,10 +107,10 @@ And with these roles: ${this._chosenRoles.join(', ')}`
       if (index >= chosenRoles.length - CARDS_ON_TABLE) {
         this.gameState.tableRoles.push(role);
       } else {
-        const player = this._players[index];
-        if (callOrder.includes(role.name)) {
-          this.gameState.playerRoles[role.name]?.push(player);
-        }
+        const player = this.players[index];
+        // if (callOrder.includes(role.name)) {
+        this.gameState.playerRoles[role.name]?.push(player);
+        // }
       }
     }
     for (const roleName of Object.values(RoleName)) {
@@ -132,9 +131,9 @@ And with these roles: ${this._chosenRoles.join(', ')}`
     this._startGameState = this.gameState.copy();
 
     const invalidPlayerIDs: string[] = [];
-    for (const player of this._players) {
+    for (const player of this.players) {
+      const roleName = this.gameState.getRoleName(player);
       try {
-        const roleName = this.gameState.getRoleName(player);
         await player.send('Your role is: ' + roleName);
       } catch (error) {
         invalidPlayerIDs.push(player.id);
@@ -163,6 +162,7 @@ Please check your privacy settings.`
         const players = this._startGameState.playerRoles[roleName];
         if (players) {
           const role = this.gameState.getRoleByName(roleName);
+          // TODO add delay when there's no insomniac so the werewolves don't know whether the role is there or not
           let roles = players.map((player) => role.doTurn(this, player));
           if (
             this.newDoppelgangerRole === roleName &&
@@ -201,8 +201,8 @@ Please check your privacy settings.`
 Reply to the DM you just received to vote for who to kill.`
     );
 
-    const choosePromises = this._players.map((player) =>
-      ChoosePlayer(this.gameState, player, ChoosePlayerType.kill)
+    const choosePromises = this.players.map((player) =>
+      ChoosePlayer(this.players, player, ChoosePlayerType.kill)
     );
     const chosenPlayers = (await Promise.all(choosePromises)).flat();
     const playerMap: { [key: string]: { count: number; player: Player } } = {};
@@ -219,12 +219,22 @@ Reply to the DM you just received to vote for who to kill.`
     );
 
     // If no player receives more than one vote, no one dies.
+    let whoWon = '';
     if (maxCount === 1) {
       await this._textChannel.send('Nobody died!');
+      if (this.gameState.playerRoles.werewolf?.length === 0) {
+        whoWon = 'Werewolf';
+      } else {
+        whoWon = 'Villagers';
+      }
     } else {
-      const playerNamesWhoDie = Object.values(playerMap)
+      const playersWhoDie = Object.values(playerMap)
         .filter(({ count }) => count === maxCount)
-        .map(({ player }) => `<@${player.id}>`);
+        .map((p) => p.player);
+
+      const playerNamesWhoDie = playersWhoDie.map(
+        (player) => `<@${player.id}>`
+      );
 
       const multipleText =
         playerNamesWhoDie.length === 1 ? 'player dies' : 'players die';
@@ -235,14 +245,35 @@ Reply to the DM you just received to vote for who to kill.`
       //   playerNamesWhoDie
       // );
       const playerNamesWhoDieString = playerNamesWhoDie.join(', ');
-      const text = `The following ${multipleText}: ${playerNamesWhoDieString}`;
-      await this._textChannel.send(text);
+      const dieText = `The following ${multipleText}: ${playerNamesWhoDieString}`;
+      await this._textChannel.send(dieText);
+      const dyingRoles = playersWhoDie.map((p) =>
+        this.gameState.getRoleName(p)
+      );
+      if (dyingRoles.includes(RoleName.tanner)) {
+        whoWon = 'Tanner';
+      } else if (
+        dyingRoles.includes(RoleName.werewolf) ||
+        dyingRoles.length === 0
+      ) {
+        whoWon = 'Villagers';
+      } else {
+        whoWon = 'Werewolf';
+      }
     }
     // The player with the most votes dies and reveals his card.
     // In case of a tie, all players tied with the most votes die and reveal their cards.
+    const winText = `This means that team ${whoWon} has won!`;
+    const winMessage = await this._textChannel.send(winText);
+    await winMessage.react('🥳');
 
+    const stateText = `Results\n**Roles before the night**:
+${this._startGameState.print(this.doppelgangerPlayer)}
+
+**Roles after the night**:
+${this.gameState.print()}`;
+    await this._textChannel.send(stateText);
     Log.info('Game has ended');
-    await this._textChannel.send('Game has ended');
     this.stopGame();
   }
 

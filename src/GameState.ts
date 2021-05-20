@@ -31,6 +31,9 @@ export class GameState {
       [RoleName.troublemaker]: [],
       [RoleName.drunk]: [],
       [RoleName.insomniac]: [],
+      [RoleName.villager]: [],
+      [RoleName.tanner]: [],
+      [RoleName.hunter]: [],
     },
     tableRoles: Role[] = []
   ) {
@@ -38,13 +41,41 @@ export class GameState {
     this.tableRoles = tableRoles;
   }
 
-  public toString(): string {
-    // TODO implement tostring
-    return 'GAMESTATE TOSTRING';
+  // TODO fix gamestate not being printed correctly
+  public print(doppelgangerPlayer: Player | null = null): string {
+    let playerRoles = '';
+    if (
+      doppelgangerPlayer &&
+      !!this.playerRoles.doppelganger?.find(
+        (p) => p.id === doppelgangerPlayer.id
+      )
+    ) {
+      playerRoles = `\n${RoleName.doppelganger}: ${doppelgangerPlayer.name}`;
+    }
+    playerRoles += (Object.keys(this.playerRoles) as RoleName[])
+      // .filter((roleName) => this.playerRoles[roleName])
+      .reduce((acc, roleName) => {
+        const players = this.playerRoles[roleName as RoleName];
+        if (players && players.length > 0) {
+          const playerNames = players.map((p) => p.name).join(', ');
+          return `\n${roleName}: ${playerNames}`;
+        }
+        return acc;
+      }, '');
+    // .map((roleName) => {
+    //   const players = this.playerRoles[roleName as RoleName];
+    //   if (players && players.length > 0) {
+    //     const playerNames = players.map((p) => p.name).join(', ');
+    //     return `\n${roleName}: ${playerNames}`;
+    //   }
+    // })
+    // .join();
+    const tableRoles = this.tableRoles.map((role) => role.name).join(', ');
+    return `Player roles:\n${playerRoles}\n\nTable roles: ${tableRoles}`;
   }
 
   public copy(): GameState {
-    const newPlayerRoles: PlayerRoles = {};
+    const newPlayerRoles: PlayerRoles = Object.assign({}, this.playerRoles);
     for (const roleName of Object.keys(this.playerRoles) as RoleName[]) {
       newPlayerRoles[roleName] = this.playerRoles[roleName]?.slice();
     }

@@ -38,8 +38,8 @@ async function execute(msg: Message, args: string[]): Promise<void> {
   }
   // TODO don't forget to change this
   ///////////////////////////
-  // const players = voiceChannel?.members;
-  const players = await client.getDummyPlayers();
+  const players = voiceChannel?.members;
+  // const players = await client.getDummyPlayers();
   //////////////////////////
 
   if (!players) {

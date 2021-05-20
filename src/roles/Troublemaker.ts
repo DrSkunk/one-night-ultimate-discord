@@ -12,13 +12,13 @@ export class Troublemaker extends Role {
   async doTurn(game: Game, player: Player): Promise<void> {
     const gameState = game.gameState;
     const text =
-      'You wake up. You can now the roles of two players. Do you want to do this?';
+      'You wake up. You can now switch the roles of two players. Do you want to do this?';
     const switchRoles = await ChooseToDoAction(player, text);
     if (switchRoles) {
       // TODO make compatible for multiple troublemakers. This is needed for a correct endgame state
       // To accomodate for the Doppelganger role
       const chosenPlayers = await ChoosePlayer(
-        gameState,
+        game.players,
         player,
         ChoosePlayerType.switch
       );

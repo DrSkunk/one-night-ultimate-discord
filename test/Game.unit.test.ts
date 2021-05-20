@@ -84,6 +84,8 @@ describe('Game', function () {
       game.gameState.playerRoles.doppelganger = [players[0]];
       game.gameState.playerRoles.werewolf = players.slice(1, 3);
       game.gameState.playerRoles.robber = players.slice(5, 2);
+      console.log(game.gameState.toString());
+
       await testGame(game);
     });
   });

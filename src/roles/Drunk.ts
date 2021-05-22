@@ -11,14 +11,10 @@ export class Drunk extends Role {
   async doTurn(game: Game, player: Player): Promise<void> {
     const gameState = game.gameState;
     await player.send('You wake up.');
-    const cardIndex = (await ChooseTableCard(gameState, player, 1, true))[0];
-    // TODO make compatible with doppelganger
-    const newRole = game.gameState.tableRoles[cardIndex].name;
-    const newTableCard = game.gameState.getRole(player);
-    game.gameState.tableRoles[cardIndex] = newTableCard;
-
-    game.gameState.playerRoles.drunk = [];
-    game.gameState.playerRoles[newRole]?.push(player);
+    const tableCardIndex = (
+      await ChooseTableCard(gameState, player, 1, true)
+    )[0];
+    game.gameState.switchTableCard(player, tableCardIndex);
 
     Log.info('Drunk turn played.');
   }

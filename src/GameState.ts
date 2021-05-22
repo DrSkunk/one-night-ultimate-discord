@@ -130,4 +130,37 @@ export class GameState {
     }
     throw new Error('Player does not have a role');
   }
+
+  public switchTableCard(player: Player, tableCardIndex: number): void {
+    const newRole = this.tableRoles[tableCardIndex].name;
+    const newTableCard = this.getRole(player);
+    // move Drunk to table
+    this.tableRoles[tableCardIndex] = newTableCard;
+    // Remove player from drunk rol
+    this.playerRoles.drunk = this.playerRoles.drunk?.filter(
+      (p) => p.id !== player.id
+    );
+    // Add player to new role
+    this.playerRoles[newRole]?.push(player);
+  }
+
+  public switchPlayerRoles(player1: Player, player2: Player): void {
+    const roleName1 = this.getRoleName(player1);
+    const role1Index = this.playerRoles[roleName1]?.findIndex(
+      (p) => p.id !== player1.id
+    );
+    if (!role1Index) {
+      throw new Error('invalid player');
+    }
+    (this.playerRoles[roleName1] as Player[])[role1Index] = player2;
+
+    const roleName2 = this.getRoleName(player2);
+    const role2Index = this.playerRoles[roleName2]?.findIndex(
+      (p) => p.id !== player2.id
+    );
+    if (!role2Index) {
+      throw new Error('invalid player');
+    }
+    (this.playerRoles[roleName2] as Player[])[role2Index] = player2;
+  }
 }

@@ -3,6 +3,12 @@ import { Client, Guild, User, SnowflakeUtil } from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { GameState } from '../src/GameState';
 import { Player } from '../src/Player';
+import { Doppelganger } from '../src/roles/Doppelganger';
+import { Drunk } from '../src/roles/Drunk';
+import { Mason } from '../src/roles/Mason';
+import { Seer } from '../src/roles/Seer';
+import { Villager } from '../src/roles/Villager';
+import { Werewolf } from '../src/roles/Werewolf';
 // import { Doppelganger } from '../src/roles/Doppelganger';
 // import { Villager } from '../src/roles/Villager';
 
@@ -51,6 +57,67 @@ describe('GameState', function () {
       expect(clonedGameState.playerRoles)
         .to.have.property(RoleName.doppelganger)
         .to.have.length(0);
+    });
+  });
+
+  describe('Move roles', function () {
+    it('it should switch roles with table role', function () {
+      const players = Array.from({ length: 3 }, () => newPlayer());
+
+      const gameState = new GameState();
+      gameState.playerRoles.drunk = [players[0]];
+      gameState.playerRoles.werewolf = [players[1], players[2]];
+      gameState.tableRoles = [
+        new Doppelganger(),
+        new Villager(),
+        new Villager(),
+      ];
+
+      expect(gameState.playerRoles.drunk).to.have.length(1);
+      expect(gameState.playerRoles.doppelganger).to.have.length(0);
+
+      gameState.switchTableCard(players[0], 0);
+      expect(gameState.playerRoles.drunk).to.have.length(0);
+      expect(gameState.playerRoles.doppelganger).to.have.length(1);
+
+      expect(gameState.tableRoles).to.be.eql([
+        new Drunk(),
+        new Villager(),
+        new Villager(),
+      ]);
+    });
+
+    it('it should switch roles with table role even with multiple drunks', function () {
+      const players = Array.from({ length: 3 }, () => newPlayer());
+
+      const gameState = new GameState();
+      gameState.playerRoles.drunk = [players[0], players[1]];
+      gameState.playerRoles.robber = [players[2]];
+      gameState.tableRoles = [new Seer(), new Werewolf(), new Werewolf()];
+
+      expect(gameState.playerRoles.drunk).to.have.length(2);
+      expect(gameState.playerRoles.robber).to.have.length(1);
+
+      gameState.switchTableCard(players[1], 1);
+      expect(gameState.playerRoles.drunk).to.be.eql([players[0]]);
+      expect(gameState.playerRoles.werewolf).to.have.length(1);
+      expect(gameState.tableRoles).to.be.eql([
+        new Seer(),
+        new Drunk(),
+        new Werewolf(),
+      ]);
+    });
+
+    it('it should switch two player roles', function () {
+      const players = Array.from({ length: 3 }, () => newPlayer());
+
+      const gameState = new GameState();
+      gameState.playerRoles.robber = [players[0]];
+      gameState.playerRoles.mason = [players[1], players[2]];
+
+      gameState.switchPlayerRoles(players[0], players[2]);
+      expect(gameState.playerRoles.robber).to.be.eql([players[2]]);
+      expect(gameState.playerRoles.mason).to.be.eql([players[0], players[2]]);
     });
   });
 });

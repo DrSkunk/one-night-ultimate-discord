@@ -22,9 +22,9 @@ class DiscordClient {
     const userIds = ['185089816218697729', '649694899095994378'];
     const users: Collection<string, User> = new Collection();
     for (const id of userIds) {
-      const user = await this._channel.members.get(id);
-      if (user) {
-        users.set(user.id, user);
+      const member = await this._channel.members.get(id);
+      if (member) {
+        users.set(member.id, member.user);
       }
     }
     // const guild = new Guild(this._client, { id: SnowflakeUtil.generate() });

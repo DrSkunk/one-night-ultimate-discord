@@ -43,21 +43,21 @@ export class GameState {
 
   // TODO fix gamestate not being printed correctly
   public print(doppelgangerPlayer: Player | null = null): string {
-    let playerRoles = '';
+    /*let playerRoles = '';
     if (
       doppelgangerPlayer &&
       !!this.playerRoles.doppelganger?.find(
         (p) => p.id === doppelgangerPlayer.id
       )
     ) {
-      playerRoles = `\n${RoleName.doppelganger}: ${doppelgangerPlayer.name}`;
+      playerRoles = `\n${RoleName.doppelganger}: ${doppelgangerPlayer.tag}`;
     }
     playerRoles += (Object.keys(this.playerRoles) as RoleName[])
       // .filter((roleName) => this.playerRoles[roleName])
       .reduce((acc, roleName) => {
         const players = this.playerRoles[roleName as RoleName];
         if (players && players.length > 0) {
-          const playerNames = players.map((p) => p.name).join(', ');
+          const playerNames = players.map((p) => p.tag).join(', ');
           return `\n${roleName}: ${playerNames}`;
         }
         return acc;
@@ -70,6 +70,19 @@ export class GameState {
     //   }
     // })
     // .join();
+    */
+    let playerRoles = '';
+    for (const roleName of Object.keys(this.playerRoles) as RoleName[]) {
+      // const player = this.get;
+      const players = this.playerRoles[roleName];
+      if (players?.length) {
+        const playerTags = players.map(({ tag }) => tag).join(', ');
+        playerRoles += `\n${roleName}: ${playerTags}`;
+        // for (const player of players) {
+        //   playerRoles += `${player.tag}`;
+        // }
+      }
+    }
     const tableRoles = this.tableRoles.map((role) => role.name).join(', ');
     return `Player roles:\n${playerRoles}\n\nTable roles: ${tableRoles}`;
   }
@@ -147,20 +160,20 @@ export class GameState {
   public switchPlayerRoles(player1: Player, player2: Player): void {
     const roleName1 = this.getRoleName(player1);
     const role1Index = this.playerRoles[roleName1]?.findIndex(
-      (p) => p.id !== player1.id
+      (p) => p.id === player1.id
     );
-    if (!role1Index) {
+    if (role1Index === undefined) {
       throw new Error('invalid player');
     }
     (this.playerRoles[roleName1] as Player[])[role1Index] = player2;
 
     const roleName2 = this.getRoleName(player2);
     const role2Index = this.playerRoles[roleName2]?.findIndex(
-      (p) => p.id !== player2.id
+      (p) => p.id === player2.id
     );
-    if (!role2Index) {
+    if (role2Index === undefined) {
       throw new Error('invalid player');
     }
-    (this.playerRoles[roleName2] as Player[])[role2Index] = player2;
+    (this.playerRoles[roleName2] as Player[])[role2Index] = player1;
   }
 }

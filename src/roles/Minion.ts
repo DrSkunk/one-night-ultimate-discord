@@ -18,7 +18,7 @@ export class Minion extends Role {
       );
     } else {
       const names = gameState.playerRoles.werewolf
-        .map((otherWerewolf) => otherWerewolf.name)
+        .map((otherWerewolf) => otherWerewolf.tag)
         .join(' and ');
       const werewolfSentence =
         gameState.playerRoles.werewolf.length === 1

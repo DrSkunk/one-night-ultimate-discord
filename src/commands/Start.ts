@@ -38,18 +38,19 @@ async function execute(msg: Message, args: string[]): Promise<void> {
   }
   // TODO don't forget to change this
   ///////////////////////////
-  const players = voiceChannel?.members;
+  const members = voiceChannel?.members;
   // const players = await client.getDummyPlayers();
   //////////////////////////
 
-  if (!players) {
+  if (!members) {
     textChannel.send(`Empty voice channel`);
     return;
   }
+  const players = members.map((m) => m.user);
 
   const author = msg.author;
   const amountToPick =
-    players.size - MAX_ROLES_COUNT[RoleName.werewolf] + CARDS_ON_TABLE;
+    players.length - MAX_ROLES_COUNT[RoleName.werewolf] + CARDS_ON_TABLE;
   const werewolves = Array.from(
     { length: MAX_ROLES_COUNT[RoleName.werewolf] },
     () => RoleName.werewolf

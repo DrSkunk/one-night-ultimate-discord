@@ -61,7 +61,7 @@ export class Game {
   }
 
   public get tagPlayersText(): string {
-    return this.players.reduce((acc, member) => `${acc}, <@${member.id}>`, '');
+    return this.players.reduce((acc, player) => `${acc}, ${player.tag}`, '');
   }
 
   public moveDoppelGanger(name: RoleName): void {
@@ -232,9 +232,7 @@ Reply to the DM you just received to vote for who to kill.`
         .filter(({ count }) => count === maxCount)
         .map((p) => p.player);
 
-      const playerNamesWhoDie = playersWhoDie.map(
-        (player) => `<@${player.id}>`
-      );
+      const playerNamesWhoDie = playersWhoDie.map((player) => player.tag);
 
       const multipleText =
         playerNamesWhoDie.length === 1 ? 'player dies' : 'players die';

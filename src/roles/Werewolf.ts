@@ -21,7 +21,7 @@ export class Werewolf extends Role {
       );
 
       const otherNames = otherWerewolves
-        .map((otherWerewolf) => otherWerewolf.name)
+        .map((otherWerewolf) => otherWerewolf.tag)
         .join(' and ');
 
       const werewolfSentence =

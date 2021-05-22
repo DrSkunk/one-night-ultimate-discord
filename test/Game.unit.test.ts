@@ -11,7 +11,7 @@ const guild = new Guild(client, {
 const textChannel = new TextChannel(guild, { id: SnowflakeUtil.generate() });
 
 function newPlayer() {
-  const user = new User(client, { id: SnowflakeUtil.generate() }, guild);
+  const user = new User(client, { id: SnowflakeUtil.generate() });
   return new Player(user);
 }
 
@@ -42,9 +42,9 @@ function newGame(size: number, players: Player[] = []): Game {
 describe('Game', function () {
   describe('Initialisation and start', function () {
     it("Don't start with invalid amount of players", function () {
-      // expect(() => {
-      //   newGame(2);
-      // }).to.throw('Invalid amount of players');
+      expect(() => {
+        newGame(2);
+      }).to.throw('Invalid amount of players');
 
       expect(() => {
         newGame(3);
@@ -84,7 +84,6 @@ describe('Game', function () {
       game.gameState.playerRoles.doppelganger = [players[0]];
       game.gameState.playerRoles.werewolf = players.slice(1, 3);
       game.gameState.playerRoles.robber = players.slice(5, 2);
-      console.log(game.gameState.toString());
 
       await testGame(game);
     });

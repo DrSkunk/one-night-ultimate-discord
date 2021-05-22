@@ -214,7 +214,7 @@ export async function ChoosePlayer(
     '🔟',
   ].slice(0, otherPlayers.length);
   const playerList = otherPlayers.reduce(
-    (acc, player, i) => acc + `\n- ${reactions[i]}: ${player.name}`,
+    (acc, player, i) => acc + `\n- ${reactions[i]}: ${player.tag}`,
     ''
   );
   let text = '';
@@ -255,7 +255,7 @@ export async function ChoosePlayer(
       const cardIndex1 = reactions.indexOf(emoji1);
       const cardIndex2 = reactions.indexOf(emoji2);
       player.send(
-        `You switch the roles of ${otherPlayers[cardIndex1].name} and ${otherPlayers[cardIndex2].name}, and you go back to sleep.`
+        `You switch the roles of ${otherPlayers[cardIndex1].tag} and ${otherPlayers[cardIndex2].tag}, and you go back to sleep.`
       );
       return [otherPlayers[cardIndex1], otherPlayers[cardIndex2]];
     } else {

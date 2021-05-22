@@ -20,7 +20,7 @@ export class Doppelganger extends Role {
     if (isMimicRole(chosenPlayerRole.name)) {
       game.moveDoppelGanger(chosenPlayerRole.name);
       await player.send(
-        `You see that ${chosenPlayer.name} has the role ${chosenPlayerRole.name}
+        `You see that ${chosenPlayer.tag} has the role ${chosenPlayerRole.name}
 You now also have the role ${chosenPlayerRole.name}.
 You go back to sleep.`
       );
@@ -29,7 +29,7 @@ You go back to sleep.`
 
     if (isInstantRole(chosenPlayerRole.name)) {
       await player.send(
-        `You see that ${chosenPlayer.name} has the role ${chosenPlayerRole.name}.
+        `You see that ${chosenPlayer.tag} has the role ${chosenPlayerRole.name}.
 You now also have the role ${chosenPlayerRole.name} and immediately execute it.`
       );
       await chosenPlayerRole.doTurn(game, player);
@@ -39,7 +39,7 @@ You now also have the role ${chosenPlayerRole.name} and immediately execute it.`
       // Only roles are left that do not wake up, Villager, Hunter and Tanner
     }
     await player.send(
-      `You see that ${chosenPlayer.name} has the role ${chosenPlayerRole.name}.
+      `You see that ${chosenPlayer.tag} has the role ${chosenPlayerRole.name}.
 You now also have the role ${chosenPlayerRole.name} and go back to sleep.`
     );
 

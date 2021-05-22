@@ -15,11 +15,8 @@ export class Player {
     return this._user.id;
   }
 
-  get name(): string {
-    if (this._user.nickname !== null) {
-      return this._user.nickname;
-    }
-    return this._user.displayName;
+  get tag(): string {
+    return `<@${this._user.id}>`;
   }
 
   get user(): User {

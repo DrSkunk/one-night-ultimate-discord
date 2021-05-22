@@ -11,7 +11,7 @@ class GamesManager {
   }
 
   public startNewGame(
-    players: Collection<string, User>,
+    players: User[],
     textChannel: TextChannel,
     roleNames: RoleName[]
   ): void {
@@ -21,12 +21,12 @@ class GamesManager {
       );
     }
 
-    const game = new Game(players.array(), textChannel, roleNames);
+    const game = new Game(players, textChannel, roleNames);
 
     this._games.set(textChannel.id, game);
     Log.info(
       `Created a new game for channel "#${textChannel.name}" with ${
-        players.size
+        players.length
       } players and with these roles: ${roleNames.join(', ')}`
     );
     game.start();

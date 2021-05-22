@@ -1,28 +1,48 @@
 import { expect } from 'chai';
-import { Client, Guild, User, SnowflakeUtil } from 'discord.js';
+import { Client, User, SnowflakeUtil } from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { GameState } from '../src/GameState';
 import { Player } from '../src/Player';
 import { Doppelganger } from '../src/roles/Doppelganger';
 import { Drunk } from '../src/roles/Drunk';
-import { Mason } from '../src/roles/Mason';
 import { Seer } from '../src/roles/Seer';
+import { Troublemaker } from '../src/roles/Troublemaker';
 import { Villager } from '../src/roles/Villager';
 import { Werewolf } from '../src/roles/Werewolf';
 // import { Doppelganger } from '../src/roles/Doppelganger';
 // import { Villager } from '../src/roles/Villager';
 
 const client = new Client();
-const guild = new Guild(client, {
-  id: SnowflakeUtil.generate(),
-});
 
-function newPlayer() {
-  const user = new User(client, { id: SnowflakeUtil.generate() }, guild);
+function newPlayer(id = SnowflakeUtil.generate()) {
+  const user = new User(client, { id });
   return new Player(user);
 }
 
 describe('GameState', function () {
+  describe('Print', function () {
+    const gameState = new GameState();
+    const players = [
+      newPlayer('11'),
+      newPlayer('22'),
+      newPlayer('33'),
+      newPlayer('44'),
+      newPlayer('55'),
+    ];
+    gameState.playerRoles.villager = [players[0]];
+    gameState.playerRoles.werewolf = [players[1], players[2]];
+    gameState.playerRoles.mason = [players[3], players[4]];
+
+    gameState.tableRoles = [new Seer(), new Villager(), new Troublemaker()];
+
+    expect(gameState.print(players[0])).to.equal(`Player roles:
+
+werewolf: <@22>, <@33>
+mason: <@44>, <@55>
+villager: <@11>
+
+Table roles: seer, villager, troublemaker`);
+  });
   describe('Player roles', function () {
     it('It should get a valid role of a player', function () {
       const gameState = new GameState();
@@ -117,7 +137,7 @@ describe('GameState', function () {
 
       gameState.switchPlayerRoles(players[0], players[2]);
       expect(gameState.playerRoles.robber).to.be.eql([players[2]]);
-      expect(gameState.playerRoles.mason).to.be.eql([players[0], players[2]]);
+      expect(gameState.playerRoles.mason).to.be.eql([players[1], players[0]]);
     });
   });
 });

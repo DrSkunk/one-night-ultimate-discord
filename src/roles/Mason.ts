@@ -21,7 +21,7 @@ export class Mason extends Role {
       );
 
       const otherNames = otherMasons
-        .map((otherMason) => otherMason.name)
+        .map((otherMason) => otherMason.tag)
         .join(' and ');
 
       const masonSentence =

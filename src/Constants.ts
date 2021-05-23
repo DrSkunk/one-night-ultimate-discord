@@ -1,5 +1,7 @@
 import { RoleName } from './enums/RoleName';
 
+export const RULES_URL =
+  'http://cloud-3.steamusercontent.com/ugc/1788471362465556315/4214EC45E12DF09CD40CF84DC7A00C1744412402/';
 export const MINIMUM_PLAYERS = 3;
 export const MAXIMUM_PLAYERS = 10;
 export const CARDS_ON_TABLE = 3;

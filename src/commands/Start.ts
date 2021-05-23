@@ -4,6 +4,7 @@ import { ChooseRoles } from '../ConversationHelper';
 import { getDiscordInstance } from '../DiscordClient';
 import { RoleName } from '../enums/RoleName';
 import { getGamesManagerInstance } from '../GamesManager';
+import { Log } from '../Log';
 import { Command } from '../types/Command';
 
 const command: Command = {
@@ -22,7 +23,11 @@ async function execute(msg: Message, args: string[]): Promise<void> {
   const gamesManager = getGamesManagerInstance();
 
   let voiceChannel;
-  if (args.length === 0) {
+  let quickStart = false;
+  if (args.length === 0 || args[0] === 'quick') {
+    if (args[0] === 'quick') {
+      quickStart = true;
+    }
     voiceChannel = msg.member?.voice.channel;
     if (!voiceChannel) {
       textChannel.send(
@@ -57,12 +62,21 @@ async function execute(msg: Message, args: string[]): Promise<void> {
   );
 
   try {
-    const roles = [
-      ...werewolves,
-      ...(await ChooseRoles(author, textChannel, amountToPick)),
-    ];
-    await gamesManager.startNewGame(players, msg.channel as TextChannel, roles);
+    if (quickStart) {
+      await gamesManager.quickStartGame(players, msg.channel as TextChannel);
+    } else {
+      const roles = [
+        ...werewolves,
+        ...(await ChooseRoles(author, textChannel, amountToPick)),
+      ];
+      await gamesManager.startNewGame(
+        players,
+        msg.channel as TextChannel,
+        roles
+      );
+    }
   } catch (error) {
+    Log.error(error.message);
     await textChannel.send(error.message);
   }
 }

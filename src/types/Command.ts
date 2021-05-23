@@ -6,3 +6,4 @@ export interface Command {
   execute(message: Message, args?: string[]): void;
   adminOnly: boolean;
 }
+// TODO optional params

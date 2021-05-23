@@ -1,13 +1,30 @@
 import { Collection, User, TextChannel } from 'discord.js';
+import { CARDS_ON_TABLE, MAX_ROLES_COUNT } from './Constants';
 import { RoleName } from './enums/RoleName';
 import { Game } from './Game';
 import { Log } from './Log';
 
 class GamesManager {
   private _games: Collection<string, Game>;
+  private _quickStart: Collection<string, RoleName[]>;
 
   constructor() {
     this._games = new Collection();
+    this._quickStart = new Collection();
+  }
+
+  public quickStartGame(players: User[], textChannel: TextChannel): void {
+    const quickStartRoles = this._quickStart.get(textChannel.id);
+    if (quickStartRoles === undefined) {
+      throw new Error(
+        `Can't quickstart, a game hasn't been played before in <#${textChannel.id}>.`
+      );
+    } else if (quickStartRoles.length - CARDS_ON_TABLE !== players.length) {
+      throw new Error(
+        `Can't quickstart, there are now a different amount of players.`
+      );
+    }
+    this.startNewGame(players, textChannel, quickStartRoles);
   }
 
   public startNewGame(
@@ -17,7 +34,7 @@ class GamesManager {
   ): void {
     if (this._games.has(textChannel.id)) {
       throw new Error(
-        `There's already a game being played in channel <#${textChannel.id}>`
+        `There's already a game being played in channel <#${textChannel.id}>.`
       );
     }
 
@@ -29,6 +46,7 @@ class GamesManager {
         players.length
       } players and with these roles: ${roleNames.join(', ')}`
     );
+    this._quickStart.set(textChannel.id, roleNames);
     game.start();
   }
 

@@ -135,7 +135,10 @@ And with these roles: ${this._chosenRoles.join(', ')}`
     for (const player of this.players) {
       const roleName = this.gameState.getRoleName(player);
       try {
-        await player.send('Your role is: ' + roleName);
+        await player.send(`Welcome to a new game of One Night Ultimate Discord!
+=========================================
+A new game has started where you have the role **${roleName}**.
+You fall deeply asleep.`);
       } catch (error) {
         invalidPlayerIDs.push(player.id);
       }
@@ -161,7 +164,7 @@ Please check your privacy settings.`
     try {
       for (const roleName of callOrder) {
         const players = this._startGameState.playerRoles[roleName];
-        if (players) {
+        if (players && players?.length > 0) {
           const role = this.gameState.getRoleByName(roleName);
           let roles = players.map((player) => role.doTurn(this, player));
           if (
@@ -178,6 +181,7 @@ Please check your privacy settings.`
           }
           await Promise.all(roles);
         } else if (this._chosenRoles.includes(roleName)) {
+          // TODO fix
           Log.info(`Faking ${roleName} because it's a table role.`);
           await new Promise((resolve) => setTimeout(resolve, FAKE_USER_TIME));
         }
@@ -231,6 +235,7 @@ Reply to the DM you just received to vote for who to kill.`
         whoWon = 'Werewolf';
       }
     } else {
+      // TODO fix hunter
       const playersWhoDie = Object.values(playerMap)
         .filter(({ count }) => count === maxCount)
         .map((p) => p.player);

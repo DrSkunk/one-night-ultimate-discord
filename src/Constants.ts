@@ -6,6 +6,7 @@ export const CARDS_ON_TABLE = 3;
 export const MAX_RETRIES = 5;
 export const SETUP_WAIT_TIME = 60000;
 export const REACTION_WAIT_TIME = 20000;
+export const FAKE_USER_TIME = 10000;
 export const ROUND_TIME_MINUTES = 0.2;
 export const ROUND_TIME_MILLISECONDS = ROUND_TIME_MINUTES * 60000;
 export const MAX_ROLES_COUNT: { [key in keyof typeof RoleName]: number } = {

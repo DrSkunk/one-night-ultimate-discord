@@ -194,9 +194,6 @@ export async function ChoosePlayer(
   choosePlayerType: ChoosePlayerType = ChoosePlayerType.view,
   retryCounter = 0
 ): Promise<Player[]> {
-  // const allPlayers: Player[] = Object.values(
-  //   gameState.playerRoles
-  // ).flat() as Player[];
   const otherPlayers = allPlayers.filter(
     (playerFromList) => playerFromList.id !== player.id
   );
@@ -258,12 +255,17 @@ export async function ChoosePlayer(
         `You switch the roles of ${otherPlayers[cardIndex1].tag} and ${otherPlayers[cardIndex2].tag}, and you go back to sleep.`
       );
       return [otherPlayers[cardIndex1], otherPlayers[cardIndex2]];
-    } else {
-      const emoji = Object.values(collected.array())[0].emoji.name;
-      const cardIndex = reactions.indexOf(emoji);
-
-      return [otherPlayers[cardIndex]];
     }
+
+    const emoji = Object.values(collected.array())[0].emoji.name;
+    const cardIndex = reactions.indexOf(emoji);
+    const votedPlayer = otherPlayers[cardIndex];
+
+    if (choosePlayerType === ChoosePlayerType.kill) {
+      player.send(`You vote to kill ${votedPlayer.tag}.`);
+    }
+
+    return [votedPlayer];
   } catch (error) {
     Log.error(error);
     await player.send('Reaction timed out. Please make a selection.');

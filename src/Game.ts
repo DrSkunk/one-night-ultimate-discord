@@ -1,6 +1,7 @@
 import { User, TextChannel } from 'discord.js';
 import {
   CARDS_ON_TABLE,
+  FAKE_USER_TIME,
   MAXIMUM_PLAYERS,
   MAX_ROLES_COUNT,
   MINIMUM_PLAYERS,
@@ -162,7 +163,6 @@ Please check your privacy settings.`
         const players = this._startGameState.playerRoles[roleName];
         if (players) {
           const role = this.gameState.getRoleByName(roleName);
-          // TODO add delay when there's no insomniac so the werewolves don't know whether the role is there or not
           let roles = players.map((player) => role.doTurn(this, player));
           if (
             this.newDoppelgangerRole === roleName &&
@@ -177,6 +177,9 @@ Please check your privacy settings.`
             roles = roles.concat(doppelGangers);
           }
           await Promise.all(roles);
+        } else if (this._chosenRoles.includes(roleName)) {
+          Log.info(`Faking ${roleName} because it's a table role.`);
+          await new Promise((resolve) => setTimeout(resolve, FAKE_USER_TIME));
         }
       }
     } catch (error) {
@@ -261,7 +264,7 @@ Reply to the DM you just received to vote for who to kill.`
     }
     // The player with the most votes dies and reveals his card.
     // In case of a tie, all players tied with the most votes die and reveal their cards.
-    const winText = `This means that team ${whoWon} has won!`;
+    const winText = `This means that **team ${whoWon}** has won!`;
     const winMessage = await this._textChannel.send(winText);
     await winMessage.react('🥳');
 

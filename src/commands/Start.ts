@@ -55,12 +55,12 @@ async function execute(msg: Message, args: string[]): Promise<void> {
     { length: MAX_ROLES_COUNT[RoleName.werewolf] },
     () => RoleName.werewolf
   );
-  const roles = [
-    ...werewolves,
-    ...(await ChooseRoles(author, textChannel, amountToPick)),
-  ];
 
   try {
+    const roles = [
+      ...werewolves,
+      ...(await ChooseRoles(author, textChannel, amountToPick)),
+    ];
     await gamesManager.startNewGame(players, msg.channel as TextChannel, roles);
   } catch (error) {
     await textChannel.send(error.message);

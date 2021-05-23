@@ -9,7 +9,18 @@ import { Command } from '../types/Command';
 
 const command: Command = {
   names: ['start'],
-  description: 'Start a new game',
+  description:
+    "Start a new game. Supply the _'quick'_ option to reuse previous settings.",
+  params: [
+    {
+      optional: true,
+      name: 'quick',
+    },
+    {
+      optional: true,
+      name: 'voice channel name',
+    },
+  ],
   execute,
   adminOnly: false,
 };

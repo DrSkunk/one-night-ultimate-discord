@@ -6,6 +6,7 @@ import { Command } from '../types/Command';
 const command: Command = {
   names: ['help', 'h'],
   description: 'Display this help information',
+  params: [],
   execute,
   adminOnly: false,
 };
@@ -17,7 +18,7 @@ async function execute(msg: Message): Promise<void> {
   }
   const embed = new MessageEmbed();
 
-  embed.setTitle('Discord plays pokemon');
+  embed.setTitle('One night ultimate Discord');
   embed.setDescription(
     'Visit https://github.com/DrSkunk/one-night-ultimate-discord for source code'
   );
@@ -35,7 +36,11 @@ async function execute(msg: Message): Promise<void> {
     if (command.adminOnly) {
       description += '\n **Admin only**';
     }
-    embed.addField(Prefix + command.names[0], description);
+    const parameters = command.params
+      .map(({ optional, name }) => (optional ? `[${name}]` : name))
+      .join(' ');
+    const title = `${Prefix}${command.names[0]} ${parameters}`;
+    embed.addField(title, description);
   });
 
   embed.setFooter(

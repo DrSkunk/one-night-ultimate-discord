@@ -6,6 +6,7 @@ import { Command } from '../types/Command';
 const command: Command = {
   names: ['time', 't'],
   description: 'Display the remaining decision time.',
+  params: [],
   execute,
   adminOnly: false,
 };

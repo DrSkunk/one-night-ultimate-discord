@@ -5,6 +5,7 @@ import {
   MAXIMUM_PLAYERS,
   MAX_ROLES_COUNT,
   MINIMUM_PLAYERS,
+  NIGHT_ALMOST_OVER_REMINDER,
   ROUND_TIME_MILLISECONDS,
   ROUND_TIME_MINUTES,
 } from './Constants';
@@ -181,7 +182,6 @@ Please check your privacy settings.`
           }
           await Promise.all(roles);
         } else if (this._chosenRoles.includes(roleName)) {
-          // TODO fix
           Log.info(`Faking ${roleName} because it's a table role.`);
           await new Promise((resolve) => setTimeout(resolve, FAKE_USER_TIME));
         }
@@ -194,12 +194,21 @@ Please check your privacy settings.`
 
     this._startTime = new Date();
 
-    this._textChannel.send(
+    await this._textChannel.send(
       `${this.tagPlayersText}The night is over! You now have ${ROUND_TIME_MINUTES} minutes to figure out what has happened!`
     );
-
-    // TODO add '30 seconds remaining' text
-    setTimeout(() => this.endGame(), ROUND_TIME_MILLISECONDS);
+    await new Promise((resolve) =>
+      setTimeout(resolve, NIGHT_ALMOST_OVER_REMINDER)
+    );
+    await this._textChannel.send(
+      `${this.tagPlayersText} ${
+        NIGHT_ALMOST_OVER_REMINDER / 1000
+      } seconds remaining!`
+    );
+    setTimeout(
+      () => this.endGame(),
+      ROUND_TIME_MILLISECONDS - NIGHT_ALMOST_OVER_REMINDER
+    );
   }
 
   private async endGame() {

@@ -41,46 +41,13 @@ export class GameState {
     this.tableRoles = tableRoles;
   }
 
-  // TODO fix gamestate not being printed correctly
-  public print(doppelgangerPlayer: Player | null = null): string {
-    /*let playerRoles = '';
-    if (
-      doppelgangerPlayer &&
-      !!this.playerRoles.doppelganger?.find(
-        (p) => p.id === doppelgangerPlayer.id
-      )
-    ) {
-      playerRoles = `\n${RoleName.doppelganger}: ${doppelgangerPlayer.tag}`;
-    }
-    playerRoles += (Object.keys(this.playerRoles) as RoleName[])
-      // .filter((roleName) => this.playerRoles[roleName])
-      .reduce((acc, roleName) => {
-        const players = this.playerRoles[roleName as RoleName];
-        if (players && players.length > 0) {
-          const playerNames = players.map((p) => p.tag).join(', ');
-          return `\n${roleName}: ${playerNames}`;
-        }
-        return acc;
-      }, '');
-    // .map((roleName) => {
-    //   const players = this.playerRoles[roleName as RoleName];
-    //   if (players && players.length > 0) {
-    //     const playerNames = players.map((p) => p.name).join(', ');
-    //     return `\n${roleName}: ${playerNames}`;
-    //   }
-    // })
-    // .join();
-    */
+  public toString(): string {
     let playerRoles = '';
     for (const roleName of Object.keys(this.playerRoles) as RoleName[]) {
-      // const player = this.get;
       const players = this.playerRoles[roleName];
       if (players?.length) {
         const playerTags = players.map(({ tag }) => tag).join(', ');
         playerRoles += `\n${roleName}: ${playerTags}`;
-        // for (const player of players) {
-        //   playerRoles += `${player.tag}`;
-        // }
       }
     }
     const tableRoles = this.tableRoles.map((role) => role.name).join(', ');

@@ -61,7 +61,7 @@ export class Game {
   }
 
   public get tagPlayersText(): string {
-    return this.players.reduce((acc, player) => `${acc}, ${player.tag}`, '');
+    return this.players.map(({ tag }) => tag).join(', ');
   }
 
   public moveDoppelGanger(name: RoleName): void {
@@ -266,10 +266,10 @@ Reply to the DM you just received to vote for who to kill.`
     await winMessage.react('🥳');
 
     const stateText = `Results\n**Roles before the night**:
-${this._startGameState.print(this.doppelgangerPlayer)}
+${this._startGameState.toString()}
 
 **Roles after the night**:
-${this.gameState.print()}`;
+${this.gameState.toString()}`;
     await this._textChannel.send(stateText);
     Log.info('Game has ended');
     this.stopGame();

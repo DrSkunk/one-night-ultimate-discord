@@ -29,17 +29,17 @@ describe('GameState', function () {
       newPlayer('44'),
       newPlayer('55'),
     ];
-    gameState.playerRoles.villager = [players[0]];
+    gameState.playerRoles.doppelganger = [players[0]];
     gameState.playerRoles.werewolf = [players[1], players[2]];
     gameState.playerRoles.mason = [players[3], players[4]];
 
     gameState.tableRoles = [new Seer(), new Villager(), new Troublemaker()];
 
-    expect(gameState.print(players[0])).to.equal(`Player roles:
+    expect(gameState.toString()).to.equal(`Player roles:
 
+doppelganger: <@11>
 werewolf: <@22>, <@33>
 mason: <@44>, <@55>
-villager: <@11>
 
 Table roles: seer, villager, troublemaker`);
   });

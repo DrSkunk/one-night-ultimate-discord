@@ -1,5 +1,10 @@
 import { Message, TextChannel } from 'discord.js';
-import { CARDS_ON_TABLE, MAX_ROLES_COUNT } from '../Constants';
+import {
+  CARDS_ON_TABLE,
+  MAXIMUM_PLAYERS,
+  MAX_ROLES_COUNT,
+  MINIMUM_PLAYERS,
+} from '../Constants';
 import { ChooseRoles } from '../ConversationHelper';
 import { getDiscordInstance } from '../DiscordClient';
 import { RoleName } from '../enums/RoleName';
@@ -73,6 +78,11 @@ async function execute(msg: Message, args: string[]): Promise<void> {
   );
 
   try {
+    if (players.length < MINIMUM_PLAYERS || players.length > MAXIMUM_PLAYERS) {
+      throw new Error(
+        `Not enough players. Game must be played with ${MINIMUM_PLAYERS} to ${MAXIMUM_PLAYERS} players.`
+      );
+    }
     if (quickStart) {
       await gamesManager.quickStartGame(players, msg.channel as TextChannel);
     } else {

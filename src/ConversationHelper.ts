@@ -49,7 +49,7 @@ export async function ChooseRoles(
       time: SETUP_WAIT_TIME,
       errors: ['time'],
     });
-    Log.log('Collected reaction(s)', collected.array());
+    Log.log('Collected reaction(s)');
 
     const roleNames = Object.values(collected.array()).map((reaction) => {
       const reactionChoice = reaction.emoji.name as ReactionChoice;
@@ -89,7 +89,7 @@ export async function ChooseTableCard(
       time: REACTION_WAIT_TIME,
       errors: ['time'],
     });
-    Log.log('Collected reaction(s)', collected.array());
+    Log.log('Collected reaction(s)');
 
     if (amountOfCardstoPick === 1) {
       const reaction = Object.values(collected.array())[0];
@@ -158,7 +158,7 @@ export async function ChooseToDoAction(
       time: REACTION_WAIT_TIME,
       errors: ['time'],
     });
-    Log.log('Collected a reaction', collected.array());
+    Log.log('Collected a reaction');
     return Object.values(collected.array())[0].emoji.name === reactions[0];
   } catch (error) {
     await player.send('Reaction timed out. ');
@@ -177,12 +177,12 @@ export async function AcknowledgeMessage(
   };
 
   try {
-    const collected = await message.awaitReactions(filter, {
+    await message.awaitReactions(filter, {
       max: 1,
       time: REACTION_WAIT_TIME,
       errors: ['time'],
     });
-    Log.log('Collected a reaction', collected.array());
+    Log.log('Collected a reaction');
   } catch (error) {
     await player.send('Reaction timed out. ');
   }
@@ -244,7 +244,7 @@ export async function ChoosePlayer(
       time: REACTION_WAIT_TIME,
       errors: ['time'],
     });
-    Log.log('Collected reaction(s)', collected.array());
+    Log.log('Collected a reaction');
 
     if (choosePlayerType === ChoosePlayerType.switch) {
       const emoji1 = Object.values(collected.array())[0].emoji.name;
@@ -306,7 +306,7 @@ export async function ChoosePlayerOrTable(
       time: REACTION_WAIT_TIME,
       errors: ['time'],
     });
-    Log.log('Collected a reaction', collected);
+    Log.log('Collected a reaction');
     const emoji = Object.values(collected.array())[0].emoji.name;
     const reactionIndex = reactions.indexOf(emoji);
     return reactionIndex === 0;

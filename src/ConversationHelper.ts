@@ -3,7 +3,6 @@ import { REACTION_WAIT_TIME, MAX_RETRIES, SETUP_WAIT_TIME } from './Constants';
 import { ChoosePlayerType } from './enums/ChoosePlayer';
 import { ReactionChoice } from './enums/ReactionChoice';
 import { RoleName } from './enums/RoleName';
-import { Game } from './Game';
 import { GameState } from './GameState';
 import { Log } from './Log';
 import { Player } from './Player';

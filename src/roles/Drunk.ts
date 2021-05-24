@@ -11,9 +11,15 @@ export class Drunk extends Role {
   async doTurn(game: Game, player: Player): Promise<void> {
     const gameState = game.gameState;
     await player.send('You wake up.');
-    const tableCardIndex = (
-      await ChooseTableCard(gameState, player, 1, true)
+    const tableCard = (
+      await ChooseTableCard(
+        gameState,
+        player,
+        1,
+        'You must take a card from the table.'
+      )
     )[0];
+    const tableCardIndex = Object.values(tableCard)[0];
     game.gameState.switchTableCard(player, tableCardIndex);
 
     Log.info('Drunk turn played.');

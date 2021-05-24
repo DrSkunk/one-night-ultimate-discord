@@ -19,13 +19,12 @@ export class Mason extends Role {
       const otherMasons = masons.filter(
         (otherPlayer) => otherPlayer.id !== player.id
       );
-
+      const masonSentence =
+        otherMasons.length === 1 ? 'mason is' : 'masons are';
       const otherNames = otherMasons
         .map((otherMason) => otherMason.tag)
         .join(' and ');
 
-      const masonSentence =
-        otherMasons.length === 1 ? 'mason is' : 'masons are';
       const prompt = `You wake up and see that the other ${masonSentence} ${otherNames}.
       Click on the reaction to acknowledge and go back to sleep.`;
       await AcknowledgeMessage(player, prompt);

@@ -3,4 +3,5 @@ export enum ChoosePlayerType {
   switch,
   clone,
   view,
+  rob,
 }

@@ -8,12 +8,16 @@ import { isInstantRole, isMimicRole, Role } from './Role';
 
 export class Doppelganger extends Role {
   readonly name = RoleName.doppelganger;
-  retryCounter = 0;
 
   async doTurn(game: Game, player: Player): Promise<void> {
     const gameState = game.gameState;
     const chosenPlayer = (
-      await ChoosePlayer(game.players, player, ChoosePlayerType.clone)
+      await ChoosePlayer(
+        game.players,
+        player,
+        ChoosePlayerType.clone,
+        'Choose a player to clone their role.'
+      )
     )[0];
     const chosenPlayerRole = gameState.getRole(chosenPlayer);
 
@@ -25,9 +29,7 @@ You now also have the role ${chosenPlayerRole.name}.
 You go back to sleep.`
       );
       return;
-    }
-
-    if (isInstantRole(chosenPlayerRole.name)) {
+    } else if (isInstantRole(chosenPlayerRole.name)) {
       await player.send(
         `You see that ${chosenPlayer.tag} has the role ${chosenPlayerRole.name}.
 You now also have the role ${chosenPlayerRole.name} and immediately execute it.`
@@ -37,11 +39,12 @@ You now also have the role ${chosenPlayerRole.name} and immediately execute it.`
       return;
 
       // Only roles are left that do not wake up, Villager, Hunter and Tanner
+    } else {
+      await player.send(
+        `You see that ${chosenPlayer.tag} has the role ${chosenPlayerRole.name}.
+  You now also have the role ${chosenPlayerRole.name} and go back to sleep.`
+      );
     }
-    await player.send(
-      `You see that ${chosenPlayer.tag} has the role ${chosenPlayerRole.name}.
-You now also have the role ${chosenPlayerRole.name} and go back to sleep.`
-    );
 
     Log.info('Doppelganger turn played.');
   }

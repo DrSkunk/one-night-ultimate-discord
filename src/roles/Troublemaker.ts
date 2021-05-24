@@ -17,9 +17,14 @@ export class Troublemaker extends Role {
       const chosenPlayers = await ChoosePlayer(
         game.players,
         player,
-        ChoosePlayerType.switch
+        ChoosePlayerType.switch,
+        'You can take a look at two cards on the table.'
       );
       game.gameState.switchPlayerRoles(chosenPlayers[0], chosenPlayers[1]);
+      player.send(
+        `You switch the roles of ${chosenPlayers[0].tag} and ${chosenPlayers[1].tag}.
+You go back to sleep.`
+      );
     } else {
       await player.send("You don't switch roles and go back to sleep.");
     }

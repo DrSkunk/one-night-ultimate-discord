@@ -1,3 +1,4 @@
+import { AcknowledgeMessage } from '../ConversationHelper';
 import { RoleName } from '../enums/RoleName';
 import { Game } from '../Game';
 import { Log } from '../Log';
@@ -13,9 +14,9 @@ export class Minion extends Role {
       !gameState.playerRoles.werewolf ||
       gameState.playerRoles.werewolf?.length === 0
     ) {
-      await player.send(
-        'You wake up and see no werewolves among the players.\nYou go back to sleep.'
-      );
+      const prompt =
+        'You wake up and see no werewolves among the players.\nClick on the reaction to acknowledge and go back to sleep.';
+      await AcknowledgeMessage(player, prompt);
     } else {
       const names = gameState.playerRoles.werewolf
         .map((otherWerewolf) => otherWerewolf.tag)
@@ -24,10 +25,12 @@ export class Minion extends Role {
         gameState.playerRoles.werewolf.length === 1
           ? 'player is a werewolf'
           : 'players are werewolves';
-      await player.send(
-        `You wake up and see that the following ${werewolfSentence}: ${names}\nYou go back to sleep.`
-      );
+      const prompt = `You wake up and see that the following ${werewolfSentence}: ${names}
+Click on the reaction to acknowledge and go back to sleep.`;
+      await AcknowledgeMessage(player, prompt);
     }
+    await player.send('You go back to sleep.');
+
     Log.info('Minion turn played.');
   }
 }

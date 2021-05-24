@@ -21,7 +21,10 @@ export class Werewolf extends Role {
       );
 
       const otherNames = otherWerewolves
-        .map((otherWerewolf) => otherWerewolf.tag)
+        .map(
+          (otherWerewolf) =>
+            otherWerewolf.tag + ' ' + otherWerewolf.user.username
+        )
         .join(' and ');
 
       const werewolfSentence =
@@ -34,7 +37,19 @@ Click on the reaction to acknowledge and go back to sleep.`;
     } else {
       player.send('You wake and you see that you are the only werewolf.');
 
-      await ChooseTableCard(gameState, player, 1);
+      const chosenCard = (
+        await ChooseTableCard(
+          gameState,
+          player,
+          1,
+          'You can take a look at a card on the table'
+        )
+      )[0];
+      const emoji = Object.keys(chosenCard)[0];
+      player.send(
+        `You see that the card ${emoji} has the role ${chosenCard[emoji]}.
+You go back to sleep.`
+      );
     }
     Log.info('Werewolf turn played.');
   }

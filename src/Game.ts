@@ -198,17 +198,14 @@ Please check your privacy settings.`
       `${this.tagPlayersText}The night is over! You now have ${ROUND_TIME_MINUTES} minutes to figure out what has happened!`
     );
     await new Promise((resolve) =>
-      setTimeout(resolve, NIGHT_ALMOST_OVER_REMINDER)
+      setTimeout(resolve, ROUND_TIME_MILLISECONDS - NIGHT_ALMOST_OVER_REMINDER)
     );
     await this._textChannel.send(
       `${this.tagPlayersText} ${
         NIGHT_ALMOST_OVER_REMINDER / 1000
       } seconds remaining!`
     );
-    setTimeout(
-      () => this.endGame(),
-      ROUND_TIME_MILLISECONDS - NIGHT_ALMOST_OVER_REMINDER
-    );
+    setTimeout(() => this.endGame(), NIGHT_ALMOST_OVER_REMINDER);
   }
 
   private async endGame() {
@@ -218,7 +215,12 @@ Reply to the DM you just received to vote for who to kill.`
     );
 
     const choosePromises = this.players.map((player) =>
-      ChoosePlayer(this.players, player, ChoosePlayerType.kill)
+      ChoosePlayer(
+        this.players,
+        player,
+        ChoosePlayerType.kill,
+        'Choose a player to kill'
+      )
     );
     const chosenPlayers = (await Promise.all(choosePromises)).flat();
     const playerMap: { [key: string]: { count: number; player: Player } } = {};
@@ -278,9 +280,10 @@ Reply to the DM you just received to vote for who to kill.`
     }
     // The player with the most votes dies and reveals his card.
     // In case of a tie, all players tied with the most votes die and reveal their cards.
-    const winText = `This means that **team ${whoWon}** has won!`;
+    const winText = `This means **team ${whoWon}** has won!`;
     const winMessage = await this._textChannel.send(winText);
     await winMessage.react('🥳');
+    // TODO fix win condition check
 
     const stateText = `Results\n**Roles before the night**:
 ${this._startGameState.toString()}
@@ -320,7 +323,7 @@ function shuffle(array: unknown[]) {
 }
 
 function millisToTime(millis: number): Time {
-  const minutes = Math.floor(millis / 60000);
-  const seconds = Math.ceil((millis % 60000) / 1000);
+  const minutes = Math.max(0, Math.floor(millis / 60000));
+  const seconds = Math.max(Math.ceil((millis % 60000) / 1000));
   return { minutes, seconds };
 }

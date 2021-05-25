@@ -1,4 +1,4 @@
-import { TextChannel, VoiceChannel, GuildMember } from 'discord.js';
+import { TextChannel, VoiceChannel, GuildMember, Collection } from 'discord.js';
 import {
   CARDS_ON_TABLE,
   FAKE_USER_TIME,
@@ -249,67 +249,111 @@ Reply to the DM you just received to vote for who to kill.`
       )
     );
     const chosenPlayers = (await Promise.all(choosePromises)).flat();
-    const playerMap: { [key: string]: { count: number; player: Player } } = {};
+
+    const votedForPlayers: Collection<
+      string,
+      { count: number; player: Player }
+    > = new Collection();
     for (const player of chosenPlayers) {
-      if (playerMap[player.id]) {
-        playerMap[player.id].count++;
-      } else {
-        playerMap[player.id] = { player, count: 1 };
+      const oldPlayer = votedForPlayers.get(player.id);
+      let count = 1;
+      if (oldPlayer) {
+        count = oldPlayer.count + 1;
       }
+      votedForPlayers.set(player.id, { count, player });
     }
-    const maxCount = Object.values(playerMap).reduce(
+
+    const highestVoteCount = votedForPlayers.reduce(
       (acc, { count }) => Math.max(acc, count),
-      0
+      1
     );
 
+    const votingOverview = votedForPlayers
+      .map(({ player, count }) => `${player.name}: ${count}`)
+      .join('\n');
+
+    this.textChannel.send(`Voting overview:\n${votingOverview}`);
+
+    let winner = '';
     // If no player receives more than one vote, no one dies.
-    let whoWon = '';
-    if (maxCount === 1) {
-      await this._textChannel.send('Nobody died!');
-      if (this.gameState.playerRoles.werewolf?.length === 0) {
-        whoWon = 'Villagers';
-      } else {
-        whoWon = 'Werewolf';
+    if (highestVoteCount === 1) {
+      this.textChannel.send('Nobody dies!');
+      // If a werewolf is among the players, team werewolf wins
+      if (this.gameState.playerRoles.werewolf) {
+        winner = 'werewolf';
       }
     } else {
-      // TODO fix hunter
-      const playersWhoDie = Object.values(playerMap)
-        .filter(({ count }) => count === maxCount)
-        .map((p) => p.player);
-
-      const playerNamesWhoDie = playersWhoDie.map((player) => player.name);
-
-      const multipleText =
-        playerNamesWhoDie.length === 1 ? 'player dies' : 'players die';
-
-      // TODO Replace when Intl.ListFormat is supported
-      // https://stackoverflow.com/questions/57964557/how-can-i-add-types-to-use-intl-listformat-in-node-v12
-      // const playerNamesWhoDieString = new Intl.ListFormat().format(
-      //   playerNamesWhoDie
-      // );
-      const playerNamesWhoDieString = playerNamesWhoDie.join(', ');
-      const dieText = `The following ${multipleText}: ${playerNamesWhoDieString}`;
-      await this._textChannel.send(dieText);
-      const dyingRoles = playersWhoDie.map((p) =>
-        this.gameState.getRoleName(p)
+      const playersWhoDieWithCount = votedForPlayers.filter(
+        ({ count }) => count === highestVoteCount
       );
-      if (dyingRoles.includes(RoleName.tanner)) {
-        whoWon = 'Tanner';
-      } else if (
-        dyingRoles.includes(RoleName.werewolf) ||
-        dyingRoles.length === 0
-      ) {
-        whoWon = 'Villagers';
+      const playersWhoDie = playersWhoDieWithCount.map(({ player }) => player);
+
+      let hunterIds: string[];
+      if (this.gameState.playerRoles.hunter) {
+        hunterIds = this.gameState.playerRoles.hunter.map(({ id }) => id);
+      }
+      const dyingHunters: Player[] = playersWhoDie.filter(({ id }) =>
+        hunterIds.includes(id)
+      );
+
+      let tannerIds: string[];
+      if (this.gameState.playerRoles.tanner) {
+        tannerIds = this.gameState.playerRoles.tanner.map(({ id }) => id);
+      }
+
+      let werewolfIds: string[];
+      if (this.gameState.playerRoles.werewolf) {
+        werewolfIds = this.gameState.playerRoles.werewolf.map(({ id }) => id);
+      }
+
+      // Tanner wins if he receives the most votes
+      if (playersWhoDie.find(({ id }) => tannerIds.includes(id))) {
+        winner = 'tanner';
+      } else if (playersWhoDie.find(({ id }) => werewolfIds.includes(id))) {
+        winner = 'villagers';
       } else {
-        whoWon = 'Werewolf';
+        winner = 'werewolf';
+      }
+      const playersWhoDieNames = playersWhoDieWithCount
+        .map(({ player }) => player.name)
+        .join(', ');
+      this.textChannel.send(
+        `The following player(s) die:\n${playersWhoDieNames}`
+      );
+      // TODO fix hunter
+      // If a hunter dies, its target also dies
+      if (dyingHunters.length > 0) {
+        const hunterKillList = dyingHunters.map((dyingHunter) => {
+          const id = chosenPlayers.findIndex(({ id }) => id === dyingHunter.id);
+          return chosenPlayers[id];
+        });
+        if (dyingHunters.length === 1) {
+          await this.textChannel.send(
+            `Since ${dyingHunters[0].name} was a hunter, ${hunterKillList[0].name} also dies.`
+          );
+        } else {
+          const hunterKillListNames = hunterKillList
+            .map(({ name }) => name)
+            .join(' and ');
+          const dyingHuntersNames = dyingHunters
+            .map(({ name }) => name)
+            .join(' and ');
+          await this.textChannel.send(
+            `Since ${dyingHuntersNames} were hunters, ${hunterKillListNames} also die.`
+          );
+          // TODO check if dying players are werewolves
+          const dyingHunterRoles = dyingHunters.map((p) =>
+            this.gameState.getRoleName(p)
+          );
+          if (dyingHunterRoles.includes(RoleName.werewolf)) {
+            winner = 'villagers';
+          }
+        }
       }
     }
-    // The player with the most votes dies and reveals his card.
-    // In case of a tie, all players tied with the most votes die and reveal their cards.
-    const winText = `This means **team ${whoWon}** has won!`;
+    const winText = `This means **team ${winner}** has won!`;
     const winMessage = await this._textChannel.send(winText);
     await winMessage.react('🥳');
-    // TODO fix win condition check
 
     const stateText = `Results\n**Roles before the night**:
 ${this._startGameState.toString()}

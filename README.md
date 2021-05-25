@@ -28,3 +28,10 @@ Copy `.env.example` to `.env` and fill in your details:
 You can create a Discord bot token by going to [the Discord developer portal](https://discord.com/developers/applications/) to create a new application. Then go to `Bot` and click `Copy` under `Token`.
 
 You can find your Guild ID and Text channel ID by enabling developer mode on your Discord client and then rightclicking the server/channel and press `Copy ID`.
+
+## Credits
+
+The following sound files were used:
+
+- [Night loop sample by Serop2012](https://freesound.org/people/serop2012/sounds/169458/)
+- [Rooster crow by Promete](https://freesound.org/people/promete/sounds/60142/)

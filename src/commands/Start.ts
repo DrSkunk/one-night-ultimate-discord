@@ -38,24 +38,15 @@ async function execute(msg: Message, args: string[]): Promise<void> {
   const textChannel = msg.channel as TextChannel;
   const gamesManager = getGamesManagerInstance();
 
-  let voiceChannel;
   let quickStart = false;
-  if (args.length === 0 || args[0] === 'quick') {
-    if (args[0] === 'quick') {
-      quickStart = true;
-    }
-    voiceChannel = msg.member?.voice.channel;
-    if (!voiceChannel) {
-      textChannel.send(
-        'Please supply a voice channel ID with players, or join a voice channel.'
-      );
-      return;
-    }
-  } else {
-    voiceChannel = msg.guild?.channels.cache.find(
-      ({ type, name }) =>
-        type === 'voice' && name.toLowerCase().includes(args[0].toLowerCase())
-    );
+  if (args[0] === 'quick') {
+    quickStart = true;
+  }
+
+  const voiceChannel = msg.member?.voice.channel;
+  if (!voiceChannel) {
+    textChannel.send('Please join a voice channel.');
+    return;
   }
   // TODO don't forget to change this
   ///////////////////////////
@@ -67,7 +58,7 @@ async function execute(msg: Message, args: string[]): Promise<void> {
     textChannel.send(`Empty voice channel`);
     return;
   }
-  const players = members.map((m) => m.user);
+  const players = members.filter((m) => !m.user.bot).map((m) => m.user);
 
   const author = msg.author;
   const amountToPick =
@@ -84,7 +75,11 @@ async function execute(msg: Message, args: string[]): Promise<void> {
       );
     }
     if (quickStart) {
-      await gamesManager.quickStartGame(players, msg.channel as TextChannel);
+      await gamesManager.quickStartGame(
+        players,
+        msg.channel as TextChannel,
+        voiceChannel
+      );
     } else {
       const roles = [
         ...werewolves,
@@ -93,6 +88,7 @@ async function execute(msg: Message, args: string[]): Promise<void> {
       await gamesManager.startNewGame(
         players,
         msg.channel as TextChannel,
+        voiceChannel,
         roles
       );
     }

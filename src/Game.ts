@@ -1,4 +1,4 @@
-import { User, TextChannel } from 'discord.js';
+import { User, TextChannel, VoiceChannel } from 'discord.js';
 import {
   CARDS_ON_TABLE,
   FAKE_USER_TIME,
@@ -18,6 +18,7 @@ import { isMimicRole, Role } from './roles/Role';
 import { ChoosePlayer } from './ConversationHelper';
 import { Time } from './types/Time';
 import { ChoosePlayerType } from './enums/ChoosePlayer';
+import { getSoundManagerInstance } from './SoundManager';
 
 export class Game {
   public readonly players: Player[];
@@ -27,12 +28,13 @@ export class Game {
   public readonly gameState: GameState;
   private _started: boolean;
   private _startTime: Date | null;
-  public doppelgangerPlayer: Player | null;
   public newDoppelgangerRole: RoleName | null;
+  private _hasVoice: boolean;
 
   constructor(
     players: User[],
     textChannel: TextChannel,
+    voiceChannel: VoiceChannel,
     chosenRoles: RoleName[]
   ) {
     if (players.length < MINIMUM_PLAYERS || players.length > MAXIMUM_PLAYERS) {
@@ -45,8 +47,14 @@ export class Game {
     this.gameState = new GameState();
     this._started = false;
     this._startTime = null;
-    this.doppelgangerPlayer = null;
     this.newDoppelgangerRole = null;
+
+    try {
+      getSoundManagerInstance().voiceChannel = voiceChannel;
+      this._hasVoice = true;
+    } catch (error) {
+      this._hasVoice = false;
+    }
   }
 
   public get remainingTime(): Time {
@@ -67,10 +75,10 @@ export class Game {
   }
 
   public moveDoppelGanger(name: RoleName): void {
-    this.doppelgangerPlayer = (
+    const doppelgangerPlayer = (
       this.gameState.playerRoles.doppelganger?.slice() as Player[]
     )[0];
-    this.gameState.playerRoles[name]?.push(this.doppelgangerPlayer);
+    this.gameState.playerRoles[name]?.push(doppelgangerPlayer);
     this.gameState.playerRoles.doppelganger = [];
     this.newDoppelgangerRole = name;
   }
@@ -131,6 +139,10 @@ And with these roles: ${this._chosenRoles.join(', ')}`
     }
 
     this._startGameState = this.gameState.copy();
+
+    if (this._hasVoice) {
+      getSoundManagerInstance().startNightLoop();
+    }
 
     const invalidPlayerIDs: string[] = [];
     for (const player of this.players) {
@@ -209,6 +221,9 @@ Please check your privacy settings.`
   }
 
   private async endGame() {
+    if (this._hasVoice) {
+      getSoundManagerInstance().stopNightLoop();
+    }
     await this._textChannel.send(
       `Everybody stop talking! That means you ${this.tagPlayersText}
 Reply to the DM you just received to vote for who to kill.`

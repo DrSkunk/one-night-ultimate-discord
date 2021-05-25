@@ -15,6 +15,7 @@
   "author": "Sebastiaan Jansen",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/opus": "^0.5.0",
     "discord.js": "^12.5.3",
     "dotenv": "^8.2.0"
   },

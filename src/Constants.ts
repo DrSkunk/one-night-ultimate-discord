@@ -12,6 +12,7 @@ export const FAKE_USER_TIME = 10000;
 export const ROUND_TIME_MINUTES = 5;
 export const ROUND_TIME_MILLISECONDS = ROUND_TIME_MINUTES * 60000;
 export const NIGHT_ALMOST_OVER_REMINDER = 30000;
+export const EMPTY_VOICE_CHECK_TIME = 10000;
 export const MAX_ROLES_COUNT: { [key in keyof typeof RoleName]: number } = {
   doppelganger: 1,
   werewolf: 2,

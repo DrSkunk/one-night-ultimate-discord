@@ -1,5 +1,5 @@
-import { Collection, User, TextChannel } from 'discord.js';
-import { CARDS_ON_TABLE, MAX_ROLES_COUNT } from './Constants';
+import { Collection, User, TextChannel, VoiceChannel } from 'discord.js';
+import { CARDS_ON_TABLE } from './Constants';
 import { RoleName } from './enums/RoleName';
 import { Game } from './Game';
 import { Log } from './Log';
@@ -13,7 +13,11 @@ class GamesManager {
     this._quickStart = new Collection();
   }
 
-  public quickStartGame(players: User[], textChannel: TextChannel): void {
+  public quickStartGame(
+    players: User[],
+    textChannel: TextChannel,
+    voiceChannel: VoiceChannel
+  ): void {
     const quickStartRoles = this._quickStart.get(textChannel.id);
     if (quickStartRoles === undefined) {
       throw new Error(
@@ -24,12 +28,13 @@ class GamesManager {
         `Can't quickstart, there are now a different amount of players.`
       );
     }
-    this.startNewGame(players, textChannel, quickStartRoles);
+    this.startNewGame(players, textChannel, voiceChannel, quickStartRoles);
   }
 
   public startNewGame(
     players: User[],
     textChannel: TextChannel,
+    voiceChannel: VoiceChannel,
     roleNames: RoleName[]
   ): void {
     if (this._games.has(textChannel.id)) {
@@ -38,7 +43,7 @@ class GamesManager {
       );
     }
 
-    const game = new Game(players, textChannel, roleNames);
+    const game = new Game(players, textChannel, voiceChannel, roleNames);
 
     this._games.set(textChannel.id, game);
     Log.info(

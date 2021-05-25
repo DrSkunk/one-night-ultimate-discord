@@ -1,5 +1,12 @@
 import { expect } from 'chai';
-import { Client, Guild, User, SnowflakeUtil, TextChannel } from 'discord.js';
+import {
+  Client,
+  Guild,
+  User,
+  SnowflakeUtil,
+  TextChannel,
+  VoiceChannel,
+} from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { Game } from '../src/Game';
 import { Player } from '../src/Player';
@@ -9,6 +16,7 @@ const guild = new Guild(client, {
   id: SnowflakeUtil.generate(),
 });
 const textChannel = new TextChannel(guild, { id: SnowflakeUtil.generate() });
+const voiceChannel = new VoiceChannel(guild, { id: SnowflakeUtil.generate() });
 
 function newPlayer() {
   const user = new User(client, { id: SnowflakeUtil.generate() });
@@ -36,7 +44,7 @@ function newGame(size: number, players: Player[] = []): Game {
     RoleName.villager,
   ].slice(0, size);
 
-  return new Game(users.slice(0, size), textChannel, roles);
+  return new Game(users.slice(0, size), textChannel, voiceChannel, roles);
 }
 
 describe('Game', function () {

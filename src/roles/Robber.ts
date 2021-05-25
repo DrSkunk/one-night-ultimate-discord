@@ -28,7 +28,7 @@ export class Robber extends Role {
       )[0];
       const roleName = game.gameState.getRoleName(chosenPlayer);
       game.gameState.switchPlayerRoles(player, chosenPlayer);
-      AcknowledgeMessage(
+      await AcknowledgeMessage(
         player,
         `You see that ${chosenPlayer.name} has the role ${roleName}, which you now take`
       );

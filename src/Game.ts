@@ -218,6 +218,11 @@ Please check your privacy settings.`
     await this._textChannel.send(
       `${this.tagPlayersText}: The night is over! You now have ${ROUND_TIME_MINUTES} minutes to figure out what has happened!`
     );
+    const wakeUpOrder = callOrder
+      .filter((roleName) => this._chosenRoles.includes(roleName))
+      .map((roleName, i) => `${i + 1}: ${roleName}`)
+      .join('\n');
+    await this._textChannel.send(`Wakeup order:\n${wakeUpOrder}`);
     await new Promise((resolve) =>
       setTimeout(resolve, ROUND_TIME_MILLISECONDS - NIGHT_ALMOST_OVER_REMINDER)
     );

@@ -1,4 +1,4 @@
-import { ChoosePlayer } from '../ConversationHelper';
+import { AcknowledgeMessage, ChoosePlayer } from '../ConversationHelper';
 import { ChoosePlayerType } from '../enums/ChoosePlayer';
 import { RoleName } from '../enums/RoleName';
 import { Game } from '../Game';
@@ -40,10 +40,12 @@ You now also have the role ${chosenPlayerRole.name} and immediately execute it.`
 
       // Only roles are left that do not wake up, Villager, Hunter and Tanner
     } else {
-      await player.send(
+      await AcknowledgeMessage(
+        player,
         `You see that ${chosenPlayer.name} has the role ${chosenPlayerRole.name}.
-  You now also have the role ${chosenPlayerRole.name} and go back to sleep.`
+  You now also have the role ${chosenPlayerRole.name}.`
       );
+      await player.send('You go back to sleep.');
     }
 
     Log.info('Doppelganger turn played.');

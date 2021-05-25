@@ -52,7 +52,10 @@ class GamesManager {
       } players and with these roles: ${roleNames.join(', ')}`
     );
     this._quickStart.set(textChannel.id, roleNames);
-    game.start();
+    game.start().catch((error) => {
+      Log.error(error);
+      textChannel.send(error.message);
+    });
   }
 
   public stopGame(textChannel: TextChannel): void {

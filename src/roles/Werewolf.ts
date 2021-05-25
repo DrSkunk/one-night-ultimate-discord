@@ -19,15 +19,13 @@ export class Werewolf extends Role {
       const otherWerewolves = werewolves.filter(
         (otherPlayer) => otherPlayer.id !== player.id
       );
-
       const otherNames = otherWerewolves
         .map((otherWerewolf) => otherWerewolf.name + ' ' + otherWerewolf.name)
         .join(' and ');
 
       const werewolfSentence =
         otherWerewolves.length === 1 ? 'werewolf is' : 'werewolves are';
-      const prompt = `You wake up and see that the other ${werewolfSentence} ${otherNames}.
-Click on the reaction to acknowledge and go back to sleep.`;
+      const prompt = `You wake up and see that the other ${werewolfSentence} ${otherNames}.`;
       await AcknowledgeMessage(player, prompt);
 
       player.send("You look in each other's eyes and go back to sleep.");
@@ -44,10 +42,11 @@ Click on the reaction to acknowledge and go back to sleep.`;
       )[0];
       const emoji = Object.keys(chosenCard)[0];
       const roleName = tableRoles[chosenCard[emoji]].name;
-      player.send(
-        `You see that the card ${emoji} has the role ${roleName}.
-You go back to sleep.`
+      await AcknowledgeMessage(
+        player,
+        `You see that the card ${emoji} has the role ${roleName}`
       );
+      await player.send('You go back to sleep.');
     }
     Log.info('Werewolf turn played.');
   }

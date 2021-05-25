@@ -1,3 +1,4 @@
+import { AcknowledgeMessage } from '../ConversationHelper';
 import { RoleName } from '../enums/RoleName';
 import { Game } from '../Game';
 import { Log } from '../Log';
@@ -10,9 +11,12 @@ export class Insomniac extends Role {
   async doTurn(game: Game, player: Player): Promise<void> {
     const gameState = game.gameState;
     const role = gameState.getRoleName(player);
-    player.send(
-      `You see that your current role is ${role}\nYou go back to sleep.`
+
+    await AcknowledgeMessage(
+      player,
+      `You see that your current role is ${role}.`
     );
+    await player.send('You go back to sleep.');
     Log.info('Insomniac turn played.');
   }
 }

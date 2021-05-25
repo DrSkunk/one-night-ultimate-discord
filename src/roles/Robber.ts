@@ -1,4 +1,8 @@
-import { ChoosePlayer, ChooseToDoAction } from '../ConversationHelper';
+import {
+  AcknowledgeMessage,
+  ChoosePlayer,
+  ChooseToDoAction,
+} from '../ConversationHelper';
 import { ChoosePlayerType } from '../enums/ChoosePlayer';
 import { RoleName } from '../enums/RoleName';
 import { Game } from '../Game';
@@ -22,12 +26,13 @@ export class Robber extends Role {
           'Choose a player to steal their role.'
         )
       )[0];
-      game.gameState.switchPlayerRoles(player, chosenPlayer);
       const roleName = game.gameState.getRoleName(chosenPlayer);
-      player.send(
-        `You see that ${chosenPlayer.name} has the role ${roleName}, which you now take.
-You go back to sleep.`
+      game.gameState.switchPlayerRoles(player, chosenPlayer);
+      AcknowledgeMessage(
+        player,
+        `You see that ${chosenPlayer.name} has the role ${roleName}, which you now take`
       );
+      await player.send('You go back to sleep.');
     } else {
       await player.send('You don\t steal a role and go back to sleep.');
     }

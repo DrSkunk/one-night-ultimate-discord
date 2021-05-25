@@ -25,13 +25,11 @@ export class Mason extends Role {
         .map((otherMason) => otherMason.name)
         .join(' and ');
 
-      const prompt = `You wake up and see that the other ${masonSentence} ${otherNames}.
-      Click on the reaction to acknowledge and go back to sleep.`;
+      const prompt = `You wake up and see that the other ${masonSentence} ${otherNames}.`;
       await AcknowledgeMessage(player, prompt);
       await player.send("You look in each other's eyes and go back to sleep.");
     } else {
-      const prompt = `You wake and you see that you are the only mason.
-      Click on the reaction to acknowledge and go back to sleep.`;
+      const prompt = 'You wake and you see that you are the only mason.';
       await AcknowledgeMessage(player, prompt);
       await player.send('You go back to sleep.');
     }

@@ -149,7 +149,6 @@ And with these roles: ${this._chosenRoles.join(', ')}`
       const text = `Welcome to a new game of One Night Ultimate Discord!
 =========================================
 A new game has started where you have the role **${roleName}**.
-Press 👍 to confirm.
 You fall deeply asleep.`;
       return AcknowledgeMessage(player, text);
     });
@@ -206,6 +205,7 @@ Please check your privacy settings.`
       Log.error(error);
       this._textChannel.send(error.message);
       this.stopGame();
+      return;
     }
     Log.info('Night over');
 

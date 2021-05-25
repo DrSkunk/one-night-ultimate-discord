@@ -1,4 +1,8 @@
-import { ChoosePlayer, ChooseToDoAction } from '../ConversationHelper';
+import {
+  AcknowledgeMessage,
+  ChoosePlayer,
+  ChooseToDoAction,
+} from '../ConversationHelper';
 import { ChoosePlayerType } from '../enums/ChoosePlayer';
 import { RoleName } from '../enums/RoleName';
 import { Game } from '../Game';
@@ -18,13 +22,14 @@ export class Troublemaker extends Role {
         game.players,
         player,
         ChoosePlayerType.switch,
-        'You can take a look at two cards on the table.'
+        'Chose two players to switch their roles'
       );
       game.gameState.switchPlayerRoles(chosenPlayers[0], chosenPlayers[1]);
-      player.send(
-        `You switch the roles of ${chosenPlayers[0].name} and ${chosenPlayers[1].name}.
-You go back to sleep.`
+      await AcknowledgeMessage(
+        player,
+        `You switch the roles of ${chosenPlayers[0].name} and ${chosenPlayers[1].name}`
       );
+      await player.send('You go back to sleep.');
     } else {
       await player.send("You don't switch roles and go back to sleep.");
     }

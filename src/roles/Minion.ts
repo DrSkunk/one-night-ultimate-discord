@@ -14,8 +14,7 @@ export class Minion extends Role {
       !gameState.playerRoles.werewolf ||
       gameState.playerRoles.werewolf?.length === 0
     ) {
-      const prompt =
-        'You wake up and see no werewolves among the players.\nClick on the reaction to acknowledge and go back to sleep.';
+      const prompt = 'You wake up and see no werewolves among the players.';
       await AcknowledgeMessage(player, prompt);
     } else {
       const names = gameState.playerRoles.werewolf
@@ -25,8 +24,7 @@ export class Minion extends Role {
         gameState.playerRoles.werewolf.length === 1
           ? 'player is a werewolf'
           : 'players are werewolves';
-      const prompt = `You wake up and see that the following ${werewolfSentence}: ${names}
-Click on the reaction to acknowledge and go back to sleep.`;
+      const prompt = `You wake up and see that the following ${werewolfSentence}: ${names}`;
       await AcknowledgeMessage(player, prompt);
     }
     await player.send('You go back to sleep.');

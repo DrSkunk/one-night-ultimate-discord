@@ -103,7 +103,7 @@ export async function ChooseTableCard(
       return cardIndexes;
     }
   } catch (error) {
-    Log.error(error);
+    Log.error('Reaction timed out');
     await player.send('Reaction timed out. Please make a selection.');
     if (retryCounter + 1 < MAX_RETRIES) {
       return await ChooseTableCard(
@@ -150,7 +150,7 @@ export async function AcknowledgeMessage(
   player: Player,
   text: string
 ): Promise<void> {
-  const message = await player.send(text);
+  const message = await player.send(`${text}\nPress 👍 to acknowledge.`);
   await message.react('👍');
   const filter = (reaction: MessageReaction) => {
     return reaction.emoji.name === '👍';
@@ -223,18 +223,16 @@ export async function ChoosePlayer(
 
     const emoji = Object.values(collected.array())[0].emoji.name;
     const cardIndex = reactions.indexOf(emoji);
-    const votedPlayer = otherPlayers[cardIndex];
-
-    return [votedPlayer];
+    return [otherPlayers[cardIndex]];
   } catch (error) {
-    Log.error(error);
+    Log.error('Reaction timed out');
     await player.send('Reaction timed out. Please make a selection.');
     if (retryCounter + 1 < MAX_RETRIES) {
       await ChoosePlayer(
         allPlayers,
         player,
         choosePlayerType,
-        'You can take a look at one card from the table.',
+        text,
         retryCounter + 1
       );
     } else {
@@ -269,7 +267,7 @@ export async function ChoosePlayerOrTable(
     const reactionIndex = reactions.indexOf(emoji);
     return reactionIndex === 0;
   } catch (error) {
-    Log.error(error);
+    Log.error('Reaction timed out');
     await player.send('Reaction timed out. Please make a selection.');
     if (retryCounter + 1 < MAX_RETRIES) {
       return await ChoosePlayerOrTable(

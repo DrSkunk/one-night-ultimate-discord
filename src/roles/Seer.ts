@@ -2,6 +2,7 @@ import {
   ChooseTableCard,
   ChoosePlayer,
   ChoosePlayerOrTable,
+  AcknowledgeMessage,
 } from '../ConversationHelper';
 import { ChoosePlayerType } from '../enums/ChoosePlayer';
 import { RoleName } from '../enums/RoleName';
@@ -32,8 +33,10 @@ export class Seer extends Role {
         )
       )[0];
       const roleName = game.gameState.getRoleName(chosenPlayer);
-      player.send(`You see that ${chosenPlayer.name} has the role ${roleName}
-You go back to sleep.`);
+      await AcknowledgeMessage(
+        player,
+        `You see that ${chosenPlayer.name} has the role ${roleName}`
+      );
     } else {
       const chosenCards = await ChooseTableCard(
         gameState,
@@ -49,10 +52,13 @@ You go back to sleep.`);
         selectedRoles += `\n${emoji}: ${roleName}`;
       }
 
-      await player.send(
-        `You view the following cards:${selectedRoles}\nYou go back to sleep.`
+      await AcknowledgeMessage(
+        player,
+        `You view the following cards:${selectedRoles}`
       );
     }
+    await player.send('You go back to sleep.');
+
     // await player.send('You go back to sleep.');
     Log.info('Seer turn played.');
   }

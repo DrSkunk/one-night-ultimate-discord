@@ -2,10 +2,11 @@ import { expect } from 'chai';
 import {
   Client,
   Guild,
-  User,
   SnowflakeUtil,
   TextChannel,
   VoiceChannel,
+  GuildMember,
+  User,
 } from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { Game } from '../src/Game';
@@ -20,7 +21,8 @@ const voiceChannel = new VoiceChannel(guild, { id: SnowflakeUtil.generate() });
 
 function newPlayer() {
   const user = new User(client, { id: SnowflakeUtil.generate() });
-  return new Player(user);
+  const gm = new GuildMember(client, { user }, guild);
+  return new Player(gm);
 }
 
 function newGame(size: number, players: Player[] = []): Game {

@@ -1,6 +1,7 @@
 import { StreamDispatcher, VoiceChannel, VoiceConnection } from 'discord.js';
 import { EMPTY_VOICE_CHECK_TIME } from './Constants';
 import { Sound } from './enums/Sound';
+import { Log } from './Log';
 
 export class SoundManager {
   private _voiceChannel: VoiceChannel | null;
@@ -22,6 +23,8 @@ export class SoundManager {
   }
 
   public async startNightLoop(): Promise<void> {
+    Log.info('Starting night loop');
+
     if (!this._voiceChannel) {
       return;
     }
@@ -30,6 +33,7 @@ export class SoundManager {
   }
 
   public async stopNightLoop(): Promise<void> {
+    Log.info('Stopping night loop');
     if (!this._voiceChannel) {
       return;
     }

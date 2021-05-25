@@ -75,14 +75,6 @@ export async function ChooseTableCard(
   text: string,
   retryCounter = 0
 ): Promise<{ [key: string]: number }[]> {
-  // TODO return emoji + index
-  // const cardsText = amountOfCardstoPick
-  //   ? 'a card'
-  //   : `${amountOfCardstoPick} cards`;
-  // const lookText = isDrunk
-  //   ? 'You must take a card from the table.'
-  //   : `You can take a look at ${cardsText} on the table.`;
-  // const message = await player.send(`${lookText}\nWhich do you choose?`);
   const message = await player.send(text);
   const reactions: string[] = ['1️⃣', '2️⃣', '3️⃣'];
   for (const reaction of reactions) {
@@ -102,39 +94,16 @@ export async function ChooseTableCard(
     if (amountOfCardstoPick === 1) {
       const reactionName = Object.values(collected.array())[0].emoji.name;
       const reactionIndex = reactions.indexOf(reactionName);
-      // const cardRole = gameState.tableRoles[reactionIndex].name;
-      // if (isDrunk) {
-      //   player.send(
-      //     `You take card ${reaction.emoji.name} and go back to sleep.`
-      //   );
-      // } else {
-      //   player.send(
-      //     `You see that the card ${reaction.emoji.name} has the role ${cardRole} and you go back to sleep.`
-      //   );
-      // }
       return [{ [reactionName]: reactionIndex }];
     } else {
-      // let selectedRoles = '';
-      // const cardIndexes: { [key: string]: number }[] = [];
-      // for (const reaction of Object.values(collected.array())) {
-      //   const reactionIndex = reactions.indexOf(reaction.emoji.name);
-      //   // const cardRole = gameState.tableRoles[reactionIndex].name;
-      //   // selectedRoles += `\n${reaction.emoji.name}: ${cardRole}`;
-      //   cardIndexes.push({ [reaction.emoji.name]: reactionIndex });
-      // }
       const cardIndexes = Object.values(collected.array()).map(({ emoji }) => ({
         [emoji.name]: reactions.indexOf(emoji.name),
       }));
 
-      // player.send(
-      //   `You view the following cards:${selectedRoles}\nYou go back to sleep.`
-      // );
       return cardIndexes;
     }
   } catch (error) {
     Log.error(error);
-
-    // await player.send(`Reaction timed out. Please select ${cardsText}.`);
     await player.send('Reaction timed out. Please make a selection.');
     if (retryCounter + 1 < MAX_RETRIES) {
       return await ChooseTableCard(
@@ -223,8 +192,7 @@ export async function ChoosePlayer(
     '🔟',
   ].slice(0, otherPlayers.length);
   const playerList = otherPlayers.reduce(
-    (acc, player, i) =>
-      acc + `\n- ${reactions[i]}: ${player.tag} ${player.user.username}`,
+    (acc, player, i) => acc + `\n- ${reactions[i]}: ${player.name}`,
     ''
   );
 

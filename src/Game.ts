@@ -1,4 +1,4 @@
-import { User, TextChannel, VoiceChannel } from 'discord.js';
+import { TextChannel, VoiceChannel, GuildMember } from 'discord.js';
 import {
   CARDS_ON_TABLE,
   FAKE_USER_TIME,
@@ -32,7 +32,7 @@ export class Game {
   private _hasVoice: boolean;
 
   constructor(
-    players: User[],
+    players: GuildMember[],
     textChannel: TextChannel,
     voiceChannel: VoiceChannel,
     chosenRoles: RoleName[]
@@ -194,7 +194,7 @@ Please check your privacy settings.`
           }
           await Promise.all(roles);
         } else if (this._chosenRoles.includes(roleName)) {
-          Log.info(`Faking ${roleName} because it's a table role.`);
+          Log.info(`Faking ${roleName} because it's a table role`);
           await new Promise((resolve) => setTimeout(resolve, FAKE_USER_TIME));
         }
       }
@@ -203,11 +203,16 @@ Please check your privacy settings.`
       this._textChannel.send(error.message);
       this.stopGame();
     }
+    Log.info('Night over');
+
+    if (this._hasVoice) {
+      getSoundManagerInstance().stopNightLoop();
+    }
 
     this._startTime = new Date();
 
     await this._textChannel.send(
-      `${this.tagPlayersText}The night is over! You now have ${ROUND_TIME_MINUTES} minutes to figure out what has happened!`
+      `${this.tagPlayersText}: The night is over! You now have ${ROUND_TIME_MINUTES} minutes to figure out what has happened!`
     );
     await new Promise((resolve) =>
       setTimeout(resolve, ROUND_TIME_MILLISECONDS - NIGHT_ALMOST_OVER_REMINDER)
@@ -221,9 +226,6 @@ Please check your privacy settings.`
   }
 
   private async endGame() {
-    if (this._hasVoice) {
-      getSoundManagerInstance().stopNightLoop();
-    }
     await this._textChannel.send(
       `Everybody stop talking! That means you ${this.tagPlayersText}
 Reply to the DM you just received to vote for who to kill.`
@@ -266,7 +268,7 @@ Reply to the DM you just received to vote for who to kill.`
         .filter(({ count }) => count === maxCount)
         .map((p) => p.player);
 
-      const playerNamesWhoDie = playersWhoDie.map((player) => player.tag);
+      const playerNamesWhoDie = playersWhoDie.map((player) => player.name);
 
       const multipleText =
         playerNamesWhoDie.length === 1 ? 'player dies' : 'players die';

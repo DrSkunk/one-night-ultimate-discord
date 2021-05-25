@@ -58,7 +58,7 @@ async function execute(msg: Message, args: string[]): Promise<void> {
     textChannel.send(`Empty voice channel`);
     return;
   }
-  const players = members.filter((m) => !m.user.bot).map((m) => m.user);
+  const players = members.filter((m) => !m.user.bot).array();
 
   const author = msg.author;
   const amountToPick =

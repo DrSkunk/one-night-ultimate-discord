@@ -46,7 +46,7 @@ export class GameState {
     for (const roleName of Object.keys(this.playerRoles) as RoleName[]) {
       const players = this.playerRoles[roleName];
       if (players?.length) {
-        const playerTags = players.map(({ tag }) => tag).join(', ');
+        const playerTags = players.map(({ name: tag }) => tag).join(', ');
         playerRoles += `\n${roleName}: ${playerTags}`;
       }
     }

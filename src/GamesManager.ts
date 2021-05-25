@@ -1,4 +1,4 @@
-import { Collection, User, TextChannel, VoiceChannel } from 'discord.js';
+import { Collection, TextChannel, VoiceChannel, GuildMember } from 'discord.js';
 import { CARDS_ON_TABLE } from './Constants';
 import { RoleName } from './enums/RoleName';
 import { Game } from './Game';
@@ -14,7 +14,7 @@ class GamesManager {
   }
 
   public quickStartGame(
-    players: User[],
+    players: GuildMember[],
     textChannel: TextChannel,
     voiceChannel: VoiceChannel
   ): void {
@@ -32,7 +32,7 @@ class GamesManager {
   }
 
   public startNewGame(
-    players: User[],
+    players: GuildMember[],
     textChannel: TextChannel,
     voiceChannel: VoiceChannel,
     roleNames: RoleName[]

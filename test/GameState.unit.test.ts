@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Client, User, SnowflakeUtil } from 'discord.js';
+import { Client, SnowflakeUtil, GuildMember, Guild, User } from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { GameState } from '../src/GameState';
 import { Player } from '../src/Player';
@@ -9,14 +9,20 @@ import { Seer } from '../src/roles/Seer';
 import { Troublemaker } from '../src/roles/Troublemaker';
 import { Villager } from '../src/roles/Villager';
 import { Werewolf } from '../src/roles/Werewolf';
-// import { Doppelganger } from '../src/roles/Doppelganger';
-// import { Villager } from '../src/roles/Villager';
 
 const client = new Client();
+const guild = new Guild(client, {
+  id: SnowflakeUtil.generate(),
+});
 
 function newPlayer(id = SnowflakeUtil.generate()) {
   const user = new User(client, { id });
-  return new Player(user);
+  const gm = new GuildMember(
+    client,
+    { user, displayName: id, nick: id },
+    guild
+  );
+  return new Player(gm);
 }
 
 describe('GameState', function () {
@@ -37,9 +43,9 @@ describe('GameState', function () {
 
     expect(gameState.toString()).to.equal(`Player roles:
 
-doppelganger: <@11>
-werewolf: <@22>, <@33>
-mason: <@44>, <@55>
+doppelganger: 11
+werewolf: 22, 33
+mason: 44, 55
 
 Table roles: seer, villager, troublemaker`);
   });

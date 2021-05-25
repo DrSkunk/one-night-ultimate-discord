@@ -9,9 +9,9 @@ export class Werewolf extends Role {
   readonly name = RoleName.werewolf;
 
   async doTurn(game: Game, player: Player): Promise<void> {
-    const gameState = game.gameState;
-    if (gameState.playerRoles.werewolf?.length !== 1) {
-      const werewolves = gameState.playerRoles.werewolf;
+    const { tableRoles, playerRoles } = game.gameState;
+    if (playerRoles.werewolf?.length !== 1) {
+      const werewolves = playerRoles.werewolf;
       // Assert that there are werewolves
       if (werewolves === undefined) {
         throw new Error('Invalid gamestate, no werewolves in the game.');
@@ -21,10 +21,7 @@ export class Werewolf extends Role {
       );
 
       const otherNames = otherWerewolves
-        .map(
-          (otherWerewolf) =>
-            otherWerewolf.tag + ' ' + otherWerewolf.user.username
-        )
+        .map((otherWerewolf) => otherWerewolf.name + ' ' + otherWerewolf.name)
         .join(' and ');
 
       const werewolfSentence =
@@ -39,15 +36,16 @@ Click on the reaction to acknowledge and go back to sleep.`;
 
       const chosenCard = (
         await ChooseTableCard(
-          gameState,
+          game.gameState,
           player,
           1,
           'You can take a look at a card on the table'
         )
       )[0];
       const emoji = Object.keys(chosenCard)[0];
+      const roleName = tableRoles[chosenCard[emoji]].name;
       player.send(
-        `You see that the card ${emoji} has the role ${chosenCard[emoji]}.
+        `You see that the card ${emoji} has the role ${roleName}.
 You go back to sleep.`
       );
     }

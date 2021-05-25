@@ -22,7 +22,7 @@ export class Mason extends Role {
       const masonSentence =
         otherMasons.length === 1 ? 'mason is' : 'masons are';
       const otherNames = otherMasons
-        .map((otherMason) => otherMason.tag)
+        .map((otherMason) => otherMason.name)
         .join(' and ');
 
       const prompt = `You wake up and see that the other ${masonSentence} ${otherNames}.

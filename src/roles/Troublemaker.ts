@@ -22,7 +22,7 @@ export class Troublemaker extends Role {
       );
       game.gameState.switchPlayerRoles(chosenPlayers[0], chosenPlayers[1]);
       player.send(
-        `You switch the roles of ${chosenPlayers[0].tag} and ${chosenPlayers[1].tag}.
+        `You switch the roles of ${chosenPlayers[0].name} and ${chosenPlayers[1].name}.
 You go back to sleep.`
       );
     } else {

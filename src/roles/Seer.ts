@@ -32,7 +32,7 @@ export class Seer extends Role {
         )
       )[0];
       const roleName = game.gameState.getRoleName(chosenPlayer);
-      player.send(`You see that ${chosenPlayer.tag} has the role ${roleName}
+      player.send(`You see that ${chosenPlayer.name} has the role ${roleName}
 You go back to sleep.`);
     } else {
       const chosenCards = await ChooseTableCard(
@@ -44,7 +44,8 @@ You go back to sleep.`);
       let selectedRoles = '';
       for (const chosenCard of chosenCards) {
         const emoji = Object.keys(chosenCard)[0];
-        const roleName = chosenCard[emoji];
+        const roleName = gameState.tableRoles[chosenCard[emoji]].name;
+
         selectedRoles += `\n${emoji}: ${roleName}`;
       }
 

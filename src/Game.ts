@@ -15,7 +15,7 @@ import { Log } from './Log';
 import { Player } from './Player';
 import { GameState } from './GameState';
 import { isMimicRole, Role } from './roles/Role';
-import { ChoosePlayer } from './ConversationHelper';
+import { AcknowledgeMessage, ChoosePlayer } from './ConversationHelper';
 import { Time } from './types/Time';
 import { ChoosePlayerType } from './enums/ChoosePlayer';
 import { getSoundManagerInstance } from './SoundManager';
@@ -144,18 +144,22 @@ And with these roles: ${this._chosenRoles.join(', ')}`
       getSoundManagerInstance().startNightLoop();
     }
 
-    const invalidPlayerIDs: string[] = [];
-    for (const player of this.players) {
+    const roleMessages = this.players.map((player) => {
       const roleName = this.gameState.getRoleName(player);
-      try {
-        await player.send(`Welcome to a new game of One Night Ultimate Discord!
+      const text = `Welcome to a new game of One Night Ultimate Discord!
 =========================================
 A new game has started where you have the role **${roleName}**.
-You fall deeply asleep.`);
-      } catch (error) {
-        invalidPlayerIDs.push(player.id);
-      }
-    }
+Press 👍 to confirm.
+You fall deeply asleep.`;
+      return AcknowledgeMessage(player, text);
+    });
+
+    const invalidPlayerIDs = (await Promise.allSettled(roleMessages))
+      .map((item, i) => ({ ...item, i }))
+      .filter((result) => result.status === 'rejected')
+      .map(({ i }) => {
+        return this.players[i].id;
+      });
 
     if (invalidPlayerIDs.length !== 0) {
       Log.warn(

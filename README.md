@@ -1,3 +1,5 @@
+![ONUW logo](assets/imgs/logo.png?raw=true 'ONUW')
+
 # One Night Ultimate Discord
 
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
@@ -32,7 +34,7 @@ You can find your Guild ID and Text channel ID by enabling developer mode on you
 
 ## Credits
 
-Images custom designed by are by [T44 Productions](https://www.t44.productions/home) with [CC BY-NC-ND 4.0 license](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+Images are custom designed by [T44 Productions](https://www.t44.productions/home) with [CC BY-NC-ND 4.0 license](https://creativecommons.org/licenses/by-nc-nd/4.0/).
 
 The following sound files were used:
 

@@ -5,7 +5,7 @@ import { Player } from '../Player';
 export abstract class Role {
   abstract readonly name: RoleName;
 
-  abstract doTurn(gameState: Game, player: Player): void;
+  abstract doTurn(game: Game, player: Player): void;
 }
 export function isMimicRole(roleName: RoleName): boolean {
   return [

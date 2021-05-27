@@ -61,8 +61,10 @@ export class Game {
     try {
       getSoundManagerInstance().voiceChannel = voiceChannel;
       this._hasVoice = true;
+      Log.info('Joining voice channel.');
     } catch (error) {
       this._hasVoice = false;
+      Log.info('Not joining voice, already in a voice channel.');
     }
   }
 
@@ -208,11 +210,6 @@ Reply to the DM you just received to vote for who to kill.`
     }));
 
     const winState = await getWinner(chosenPlayers, this.gameState);
-    // winner: Team;
-    // votingOverview: string;
-    // playersWhoDie: Player[];
-    // dyingHunters: Player[];
-    // hunterKillList: Player[];
     let winText = `Voting overview:\n${winState.votingOverview}`;
     if (winState.playersWhoDie.length === 0) {
       winText += '\nNobody dies!';

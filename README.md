@@ -1,6 +1,7 @@
 # One Night Ultimate Discord
 
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-f8bc45.svg)](https://github.com/prettier/prettier)
 
@@ -30,6 +31,8 @@ You can create a Discord bot token by going to [the Discord developer portal](ht
 You can find your Guild ID and Text channel ID by enabling developer mode on your Discord client and then rightclicking the server/channel and press `Copy ID`.
 
 ## Credits
+
+Images custom designed by are by [T44 Productions](https://www.t44.productions/home) with [CC BY-NC-ND 4.0 license](https://creativecommons.org/licenses/by-nc-nd/4.0/).
 
 The following sound files were used:
 

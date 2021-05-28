@@ -141,8 +141,13 @@ export async function playAllTurns(game: Game): Promise<void> {
       }
       await Promise.all(roles);
     } else if (game.chosenRoles.includes(roleName)) {
-      Log.info(`Faking ${roleName} because it's a table role`);
-      await new Promise((resolve) => setTimeout(resolve, FAKE_USER_TIME));
+      const fakeTime = FAKE_USER_TIME + Math.floor(Math.random() * 5000);
+      Log.info(
+        `Faking ${roleName} because it's a table role for ${
+          fakeTime / 1000
+        } seconds.`
+      );
+      await new Promise((resolve) => setTimeout(resolve, fakeTime));
     }
   }
 }

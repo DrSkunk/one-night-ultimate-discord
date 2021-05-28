@@ -1,12 +1,4 @@
-import Discord, {
-  Collection,
-  Guild,
-  MessageAttachment,
-  MessageEmbed,
-  SnowflakeUtil,
-  TextChannel,
-  User,
-} from 'discord.js';
+import Discord, { Collection, TextChannel, User } from 'discord.js';
 import glob from 'glob';
 import { promisify } from 'util';
 import { DiscordChannelId, Prefix } from './Config';

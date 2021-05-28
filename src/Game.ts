@@ -1,9 +1,6 @@
-import { TextChannel, VoiceChannel, GuildMember, Collection } from 'discord.js';
+import { TextChannel, VoiceChannel, GuildMember } from 'discord.js';
 import {
-  CARDS_ON_TABLE,
-  FAKE_USER_TIME,
   MAXIMUM_PLAYERS,
-  MAX_ROLES_COUNT,
   MINIMUM_PLAYERS,
   NIGHT_ALMOST_OVER_REMINDER,
   ROUND_TIME_MILLISECONDS,
@@ -14,8 +11,8 @@ import { getGamesManagerInstance } from './GamesManager';
 import { Log } from './Log';
 import { Player } from './Player';
 import { GameState } from './GameState';
-import { isMimicRole, Role } from './roles/Role';
-import { AcknowledgeMessage, ChoosePlayer } from './ConversationHelper';
+import { Role } from './roles/Role';
+import { ChoosePlayer } from './ConversationHelper';
 import { Time } from './types/Time';
 import { ChoosePlayerType } from './enums/ChoosePlayer';
 import { getSoundManagerInstance } from './SoundManager';

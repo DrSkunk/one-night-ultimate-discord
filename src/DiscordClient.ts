@@ -1,4 +1,4 @@
-import Discord, { Collection, TextChannel, User } from 'discord.js';
+import Discord, { TextChannel, User } from 'discord.js';
 import glob from 'glob';
 import { promisify } from 'util';
 import { DiscordChannelId, Prefix } from './Config';
@@ -8,34 +8,20 @@ import { Command } from './types/Command';
 const globPromise = promisify(glob);
 
 class DiscordClient {
-  ////////////////////////////
-  // dummy players, remove after testing
-  async getDummyPlayers(): Promise<Collection<string, User>> {
-    const userIds = ['185089816218697729', '649694899095994378'];
-    const users: Collection<string, User> = new Collection();
-    for (const id of userIds) {
-      const member = await this._channel.members.get(id);
-      if (member) {
-        users.set(member.id, member.user);
-      }
-    }
-    // const guild = new Guild(this._client, { id: SnowflakeUtil.generate() });
-    // const dummyUser = new User(
-    //   this._client,
-    //   { id: SnowflakeUtil.generate() },
-    //   guild
-    // );
-    // users.set(dummyUser.id, dummyUser);
-    return users;
-  }
-  ///////////////////////////
-
   private _token: string;
   private _client: Discord.Client;
   private _channel: Discord.TextChannel;
   private _commands: Command[];
   public sendingMessage: boolean;
   public failedAttempts: number;
+
+  get user(): User {
+    const { user } = this._client;
+    if (!user) {
+      throw new Error('No user yet.');
+    }
+    return user;
+  }
 
   get commands() {
     return this._commands;

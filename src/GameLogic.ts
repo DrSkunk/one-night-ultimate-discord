@@ -134,7 +134,7 @@ export function millisToTime(millis: number): Time {
 }
 
 export async function playAllTurns(game: Game): Promise<void> {
-  const { startGameState, gameState } = game;
+  const { startGameState } = game;
   for (const roleName of callOrder) {
     const players = startGameState.playerRoles[roleName];
     if (players && players?.length > 0) {

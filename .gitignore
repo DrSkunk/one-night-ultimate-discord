@@ -12,4 +12,4 @@ saves/*.sav
 frames/*.png
 .env
 
-./src/commands/Test.ts
+src/commands/Test.ts

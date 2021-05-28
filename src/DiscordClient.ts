@@ -1,7 +1,7 @@
-import Discord, { TextChannel, User } from 'discord.js';
+import Discord, { User } from 'discord.js';
 import glob from 'glob';
 import { promisify } from 'util';
-import { DiscordChannelId, Prefix } from './Config';
+import { Prefix } from './Config';
 import { Log } from './Log';
 import { Command } from './types/Command';
 
@@ -10,7 +10,6 @@ const globPromise = promisify(glob);
 class DiscordClient {
   private _token: string;
   private _client: Discord.Client;
-  private _channel: Discord.TextChannel;
   private _commands: Command[];
   public sendingMessage: boolean;
   public failedAttempts: number;
@@ -30,9 +29,6 @@ class DiscordClient {
   constructor(token: string) {
     this._token = token;
     this._client = new Discord.Client();
-    this._channel = this._client.channels.cache.get(
-      DiscordChannelId
-    ) as TextChannel;
     this._commands = [];
     this.sendingMessage = false;
     this.failedAttempts = 0;
@@ -41,9 +37,6 @@ class DiscordClient {
   start() {
     this._client.on('ready', async () => {
       Log.info(`Logged in!`);
-      this._channel = this._client.channels.cache.get(
-        DiscordChannelId
-      ) as TextChannel;
       if (this._client.user) {
         this._client.user
           .setActivity(`${Prefix}help`, { type: 'LISTENING' })
@@ -62,15 +55,8 @@ class DiscordClient {
       }
     });
 
-    // TODO: Currently the bot only listens to messages sent to one specific channel, which is
-    // set in the .env and used in DiscordClient.ts, essentially making the game manager obsolete.
-    // In order to enable multiplae games, remove the check "message.channel.id !== DiscordChannelId"
     this._client.on('message', async (message) => {
-      if (
-        !message.guild ||
-        message.channel.id !== DiscordChannelId ||
-        !message.content.startsWith(Prefix)
-      ) {
+      if (!message.guild || !message.content.startsWith(Prefix)) {
         return;
       }
 

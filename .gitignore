@@ -11,3 +11,5 @@ roms/*.gb
 saves/*.sav
 frames/*.png
 .env
+
+./src/commands/Test.ts

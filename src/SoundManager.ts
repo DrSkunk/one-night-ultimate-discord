@@ -1,5 +1,5 @@
 import { StreamDispatcher, VoiceChannel, VoiceConnection } from 'discord.js';
-import { EMPTY_VOICE_CHECK_TIME } from './Constants';
+import { BOT_USER_ID, EMPTY_VOICE_CHECK_TIME } from './Constants';
 import { Sound } from './enums/Sound';
 import { Log } from './Log';
 
@@ -16,7 +16,7 @@ export class SoundManager {
   }
 
   set voiceChannel(voiceChannel: VoiceChannel) {
-    if (this._voiceChannel) {
+    if (this._voiceChannel && this._voiceChannel.members.get(BOT_USER_ID)) {
       throw new Error('Already connected to a voice channel.');
     }
     this._voiceChannel = voiceChannel;

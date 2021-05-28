@@ -157,6 +157,11 @@ Please check your privacy settings.`
       this.stopGame();
       return;
     }
+    await Promise.all(
+      this.players.map((p) =>
+        p.send('You wake up! Go to the discussion text channel to continue.')
+      )
+    );
     Log.info('Night over');
 
     if (this._hasVoice) {

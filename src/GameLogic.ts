@@ -240,7 +240,6 @@ export function getWinner(
       const hunterKillListRoles = hunterKillList.map((p) =>
         gameState.getRoleName(p)
       );
-      console.log(hunterKillListRoles);
       if (hunterKillListRoles.includes(RoleName.werewolf)) {
         winner = Team.villagers;
       }

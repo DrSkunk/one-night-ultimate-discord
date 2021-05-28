@@ -1,5 +1,10 @@
 import { Collection } from 'discord.js';
-import { CARDS_ON_TABLE, FAKE_USER_TIME, MAX_ROLES_COUNT } from './Constants';
+import {
+  CARDS_ON_TABLE,
+  FAKE_USER_TIME,
+  IMG_BASE_URL,
+  MAX_ROLES_COUNT,
+} from './Constants';
 import { AcknowledgeMessage } from './ConversationHelper';
 import { RoleName } from './enums/RoleName';
 import { Team } from './enums/Team';
@@ -78,13 +83,27 @@ export async function sendRoleMessages(
   gameState: GameState,
   players: Player[]
 ): Promise<string[]> {
-  const roleMessages = players.map((player) => {
+  const roleMessages = players.map(async (player) => {
     const roleName = gameState.getRoleName(player);
-    const text = `Welcome to a new game of One Night Ultimate Discord!
-=========================================
-A new game has started where you have the role **${roleName}**.
-You fall deeply asleep.`;
-    return AcknowledgeMessage(player, text);
+    await player.send({
+      files: [
+        {
+          attachment: `${IMG_BASE_URL}banner.png`,
+          name: 'banner.png',
+        },
+      ],
+    });
+    await player.send({
+      content: `A new game has started where you have the role ||**${roleName}**||.`,
+      files: [
+        {
+          attachment: `${IMG_BASE_URL}${roleName}.png`,
+          name: `SPOILER_${roleName}.png`,
+        },
+      ],
+    });
+
+    return AcknowledgeMessage(player, 'You fall deeply asleep.');
   });
 
   const invalidPlayerIDs = (await Promise.allSettled(roleMessages))

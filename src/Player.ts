@@ -1,4 +1,9 @@
-import { GuildMember, Message } from 'discord.js';
+import {
+  APIMessageContentResolvable,
+  GuildMember,
+  Message,
+  MessageOptions,
+} from 'discord.js';
 
 // TODO replace Player by just GuildMember
 export class Player {
@@ -8,8 +13,14 @@ export class Player {
     this._guildMember = guildMember;
   }
 
-  public async send(message: string): Promise<Message> {
-    return await this._guildMember.send(message);
+  public async send(
+    content:
+      | APIMessageContentResolvable
+      | (MessageOptions & {
+          split?: false | undefined;
+        })
+  ): Promise<Message> {
+    return await this._guildMember.send(content);
   }
 
   get id(): string {

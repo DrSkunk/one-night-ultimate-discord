@@ -12,7 +12,19 @@ import { Game } from './Game';
 import { GameState } from './GameState';
 import { Log } from './Log';
 import { Player } from './Player';
+import { Doppelganger } from './roles/Doppelganger';
+import { Drunk } from './roles/Drunk';
+import { Hunter } from './roles/Hunter';
+import { Insomniac } from './roles/Insomniac';
+import { Mason } from './roles/Mason';
+import { Minion } from './roles/Minion';
+import { Robber } from './roles/Robber';
 import { isMimicRole, Role } from './roles/Role';
+import { Seer } from './roles/Seer';
+import { Tanner } from './roles/Tanner';
+import { Troublemaker } from './roles/Troublemaker';
+import { Villager } from './roles/Villager';
+import { Werewolf } from './roles/Werewolf';
 import { Time } from './types/Time';
 
 export const callOrder = [
@@ -126,7 +138,7 @@ export async function playAllTurns(game: Game): Promise<void> {
   for (const roleName of callOrder) {
     const players = startGameState.playerRoles[roleName];
     if (players && players?.length > 0) {
-      const role = gameState.getRoleByName(roleName);
+      const role = getRoleByName(roleName);
       let roles = players.map((player) => role.doTurn(game, player));
       if (
         game.newDoppelgangerRole === roleName &&
@@ -252,4 +264,35 @@ export function getWinner(
     dyingHunters,
     hunterKillList,
   };
+}
+
+export function getRoleByName(roleName: RoleName): Role {
+  switch (roleName) {
+    case RoleName.doppelganger:
+      return new Doppelganger();
+    case RoleName.drunk:
+      return new Drunk();
+    case RoleName.hunter:
+      return new Hunter();
+    case RoleName.insomniac:
+      return new Insomniac();
+    case RoleName.mason:
+      return new Mason();
+    case RoleName.minion:
+      return new Minion();
+    case RoleName.robber:
+      return new Robber();
+    case RoleName.seer:
+      return new Seer();
+    case RoleName.tanner:
+      return new Tanner();
+    case RoleName.troublemaker:
+      return new Troublemaker();
+    case RoleName.villager:
+      return new Villager();
+    case RoleName.werewolf:
+      return new Werewolf();
+    default:
+      throw new Error('invalid gamestate');
+  }
 }

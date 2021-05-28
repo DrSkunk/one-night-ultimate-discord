@@ -1,4 +1,10 @@
-import { Collection, TextChannel, VoiceChannel, GuildMember } from 'discord.js';
+import {
+  Collection,
+  TextChannel,
+  VoiceChannel,
+  GuildMember,
+  User,
+} from 'discord.js';
 import { CARDS_ON_TABLE } from './Constants';
 import { RoleName } from './enums/RoleName';
 import { Game } from './Game';
@@ -14,6 +20,7 @@ class GamesManager {
   }
 
   public quickStartGame(
+    initiator: User,
     players: GuildMember[],
     textChannel: TextChannel,
     voiceChannel: VoiceChannel
@@ -28,10 +35,17 @@ class GamesManager {
         `Can't quickstart, there are now a different amount of players.`
       );
     }
-    this.startNewGame(players, textChannel, voiceChannel, quickStartRoles);
+    this.startNewGame(
+      initiator,
+      players,
+      textChannel,
+      voiceChannel,
+      quickStartRoles
+    );
   }
 
   public startNewGame(
+    initiator: User,
     players: GuildMember[],
     textChannel: TextChannel,
     voiceChannel: VoiceChannel,
@@ -43,7 +57,13 @@ class GamesManager {
       );
     }
 
-    const game = new Game(players, textChannel, voiceChannel, roleNames);
+    const game = new Game(
+      players,
+      textChannel,
+      voiceChannel,
+      roleNames,
+      initiator
+    );
 
     this._games.set(textChannel.id, game);
     Log.info(

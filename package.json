@@ -6,7 +6,7 @@
   "scripts": {
     "start": "tsc && node dist/index.js",
     "develop": "./node_modules/nodemon/bin/nodemon.js -e ts  --exec \"npm run start\"",
-    "test": "mocha",
+    "test": "mocha --exit",
     "test:watch": "mocha -w",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix",
     "prettier-format": "prettier --config .prettierrc '**/*.{js,ts,tsx,json,md,html}' --write",

@@ -48,11 +48,8 @@ async function execute(msg: Message, args: string[]): Promise<void> {
     textChannel.send('Please join a voice channel.');
     return;
   }
-  // TODO don't forget to change this
-  ///////////////////////////
+
   const members = voiceChannel?.members;
-  // const players = await client.getDummyPlayers();
-  //////////////////////////
 
   if (!members) {
     textChannel.send(`Empty voice channel`);
@@ -76,6 +73,7 @@ async function execute(msg: Message, args: string[]): Promise<void> {
     }
     if (quickStart) {
       await gamesManager.quickStartGame(
+        msg.author,
         players,
         msg.channel as TextChannel,
         voiceChannel
@@ -86,6 +84,7 @@ async function execute(msg: Message, args: string[]): Promise<void> {
         ...(await ChooseRoles(author, textChannel, amountToPick)),
       ];
       await gamesManager.startNewGame(
+        msg.author,
         players,
         msg.channel as TextChannel,
         voiceChannel,

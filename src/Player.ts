@@ -5,7 +5,6 @@ import {
   MessageOptions,
 } from 'discord.js';
 
-// TODO replace Player by just GuildMember
 export class Player {
   private _guildMember: GuildMember;
 

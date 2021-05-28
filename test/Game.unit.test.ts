@@ -26,7 +26,7 @@ function newPlayer() {
 }
 
 function newGame(size: number, players: Player[] = []): Game {
-  let users;
+  let users: GuildMember[];
   if (players.length === 0) {
     users = Array.from({ length: size }, () => newPlayer().user);
   } else {
@@ -46,7 +46,13 @@ function newGame(size: number, players: Player[] = []): Game {
     RoleName.villager,
   ].slice(0, size);
 
-  return new Game(users.slice(0, size), textChannel, voiceChannel, roles);
+  return new Game(
+    users.slice(0, size),
+    textChannel,
+    voiceChannel,
+    roles,
+    users[0].user
+  );
 }
 
 describe('Game', function () {

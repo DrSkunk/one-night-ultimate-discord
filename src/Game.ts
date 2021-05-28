@@ -1,4 +1,4 @@
-import { TextChannel, VoiceChannel, GuildMember } from 'discord.js';
+import { TextChannel, VoiceChannel, GuildMember, User } from 'discord.js';
 import {
   MAXIMUM_PLAYERS,
   MINIMUM_PLAYERS,
@@ -19,6 +19,7 @@ import { getSoundManagerInstance } from './SoundManager';
 import {
   callOrder,
   distributeRoles,
+  getRoleByName,
   getWinner,
   millisToTime,
   playAllTurns,
@@ -36,12 +37,14 @@ export class Game {
   private _startTime: Date | null;
   public newDoppelgangerRole: RoleName | null;
   private _hasVoice: boolean;
+  private _initiator: User;
 
   constructor(
     players: GuildMember[],
     textChannel: TextChannel,
     voiceChannel: VoiceChannel,
-    chosenRoles: RoleName[]
+    chosenRoles: RoleName[],
+    initiator: User
   ) {
     if (players.length < MINIMUM_PLAYERS || players.length > MAXIMUM_PLAYERS) {
       throw new Error('Invalid amount of players');
@@ -54,6 +57,7 @@ export class Game {
     this._started = false;
     this._startTime = null;
     this.newDoppelgangerRole = null;
+    this._initiator = initiator;
 
     try {
       getSoundManagerInstance().voiceChannel = voiceChannel;
@@ -63,6 +67,10 @@ export class Game {
       this._hasVoice = false;
       Log.info('Not joining voice, already in a voice channel.');
     }
+  }
+
+  public get initiator(): User {
+    return this._initiator;
   }
 
   public get startGameState(): GameState {
@@ -111,9 +119,7 @@ And with these roles: ${this._chosenRoles.join(', ')}`
     this._started = true;
 
     const chosenRoles = shuffle(
-      this._chosenRoles.map((roleName) =>
-        this.gameState.getRoleByName(roleName)
-      )
+      this._chosenRoles.map((roleName) => getRoleByName(roleName))
     ) as Role[];
 
     distributeRoles(this.gameState, this.players, chosenRoles);
@@ -217,7 +223,6 @@ Reply to the DM you just received to vote for who to kill.`
       return toKill;
     });
     const chooseResult = (await Promise.all(choosePromises)).flat();
-    // const chosenPlayers: { target: Player; ChosenBy: Player }[] = [];
     const chosenPlayers = chooseResult.map((target, i) => ({
       target,
       chosenBy: this.players[i],

@@ -20,7 +20,7 @@ export class Werewolf extends Role {
         (otherPlayer) => otherPlayer.id !== player.id
       );
       const otherNames = otherWerewolves
-        .map((otherWerewolf) => otherWerewolf.name + ' ' + otherWerewolf.name)
+        .map((otherWerewolf) => otherWerewolf.name)
         .join(' and ');
 
       const werewolfSentence =

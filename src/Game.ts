@@ -176,6 +176,11 @@ Please check your privacy settings.`
     await new Promise((resolve) =>
       setTimeout(resolve, ROUND_TIME_MILLISECONDS - NIGHT_ALMOST_OVER_REMINDER)
     );
+
+    if (this._hasVoice) {
+      getSoundManagerInstance().playGong();
+    }
+
     await this.sendChannelMessage(
       `${this.tagPlayersText} ${
         NIGHT_ALMOST_OVER_REMINDER / 1000
@@ -189,19 +194,26 @@ Please check your privacy settings.`
   }
 
   private async endGame() {
+    if (this._hasVoice) {
+      getSoundManagerInstance().playGong();
+    }
     await this.sendChannelMessage(
       `Everybody stop talking! That means you ${this.tagPlayersText}
 Reply to the DM you just received to vote for who to kill.`
     );
 
-    const choosePromises = this.players.map((player) =>
-      ChoosePlayer(
-        this.players,
-        player,
-        ChoosePlayerType.kill,
-        'Choose a player to kill'
-      )
-    );
+    const choosePromises = this.players.map(async (player) => {
+      const toKill = (
+        await ChoosePlayer(
+          this.players,
+          player,
+          ChoosePlayerType.kill,
+          'Choose a player to kill'
+        )
+      )[0];
+      player.send(`You chose to kill ${toKill.name}`);
+      return toKill;
+    });
     const chooseResult = (await Promise.all(choosePromises)).flat();
     // const chosenPlayers: { target: Player; ChosenBy: Player }[] = [];
     const chosenPlayers = chooseResult.map((target, i) => ({
@@ -217,7 +229,7 @@ Reply to the DM you just received to vote for who to kill.`
       const playersWhoDieNames = winState.playersWhoDie
         .map((player) => player.name)
         .join(', ');
-      winText += `\nThe following player(s) die:\n${playersWhoDieNames}`;
+      winText += `\nThe following player(s) die: ${playersWhoDieNames}`;
 
       const hunterKillListNames = winState.hunterKillList
         .map(({ name }) => name)
@@ -227,7 +239,7 @@ Reply to the DM you just received to vote for who to kill.`
         .join(' and ');
       if (winState.dyingHunters.length === 1) {
         winText += `\nSince ${winState.dyingHunters[0].name} was a hunter, ${winState.hunterKillList[0].name} also dies.`;
-      } else {
+      } else if (winState.dyingHunters.length > 1) {
         winText += `\nSince ${dyingHuntersNames} were hunters, ${hunterKillListNames} also die.`;
       }
     }

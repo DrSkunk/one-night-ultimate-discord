@@ -40,3 +40,4 @@ The following sound files were used:
 
 - [Night loop sample by Serop2012](https://freesound.org/people/serop2012/sounds/169458/)
 - [Rooster crow by Promete](https://freesound.org/people/promete/sounds/60142/)
+- [Gong sample by InspectorJ](https://freesound.org/people/InspectorJ/sounds/411090/)

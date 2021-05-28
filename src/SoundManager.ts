@@ -41,6 +41,11 @@ export class SoundManager {
     this._dispatcher = this.play(Sound.rooster);
   }
 
+  public playGong(): void {
+    Log.info('Playing "time almost up" sample');
+    this.play(Sound.gong);
+  }
+
   private play(sound: Sound): StreamDispatcher {
     if (this._connection) {
       return this._connection.play(

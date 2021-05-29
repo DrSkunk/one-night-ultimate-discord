@@ -4,7 +4,12 @@ name: Build Docker image after Tag
 
 # Controls when the action will run. 
 on:
-  # Triggers the workflow on t
+  # Trigger when pushed
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Triggers the workflow on manual tagging
   release:
     types: [prereleased, published]
 

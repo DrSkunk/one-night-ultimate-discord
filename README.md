@@ -30,8 +30,6 @@ Copy `.env.example` to `.env` and fill in your details:
 
 You can create a Discord bot token by going to [the Discord developer portal](https://discord.com/developers/applications/) to create a new application. Then go to `Bot` and click `Copy` under `Token`.
 
-You can find your Guild ID and Text channel ID by enabling developer mode on your Discord client and then rightclicking the server/channel and press `Copy ID`.
-
 ## Credits
 
 Images are custom designed by [T44 Productions](https://www.t44.productions/home) with [CC BY-NC-ND 4.0 license](https://creativecommons.org/licenses/by-nc-nd/4.0/).

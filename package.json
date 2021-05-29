@@ -4,7 +4,7 @@
   "description": "Play One Night Ultimate Werewolf together with friends on Discord",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && node dist/index.js",
+    "start": "tsc && node dist/src/index.js",
     "develop": "./node_modules/nodemon/bin/nodemon.js -e ts  --exec \"npm run start\"",
     "test": "mocha --exit",
     "test:watch": "mocha -w",

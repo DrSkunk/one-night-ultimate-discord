@@ -124,7 +124,7 @@ export async function ChooseToDoAction(
   text: string
 ): Promise<boolean> {
   const message = await player.send(text);
-  const reactions: string[] = ['✔️', '❌'];
+  const reactions: string[] = ['✅', '❌'];
   for (const reaction of reactions) {
     await message.react(reaction);
   }

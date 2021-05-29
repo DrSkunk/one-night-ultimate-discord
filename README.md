@@ -11,6 +11,8 @@ Server application made in typescript that allows a discord server to play the g
 
 Check the `help` command for all commands.
 
+[Click here to invite the bot to your server.](https://discord.com/api/oauth2/authorize?client_id=843451299973693472&permissions=0&scope=bot)
+
 ## Installation
 
 This requires [NodeJS](https://nodejs.org/en/) to be installed.

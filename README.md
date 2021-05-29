@@ -25,8 +25,6 @@ Copy `.env.example` to `.env` and fill in your details:
 
 - `PREFIX`: The prefix for the commands.
 - `DISCORD_TOKEN`: Your Discord bot token.
-- `DISCORD_GUILD_ID`: The ID of the server/guild where the bot will run.
-- `DISCORD_CHANNEL_ID`: The ID of the text channel where the bot will listen to and post messages.
 
 You can create a Discord bot token by going to [the Discord developer portal](https://discord.com/developers/applications/) to create a new application. Then go to `Bot` and click `Copy` under `Token`.
 

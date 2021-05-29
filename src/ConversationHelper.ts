@@ -28,8 +28,9 @@ export async function ChooseRoles(
     [ReactionChoice['8️⃣']]: RoleName.seer,
     [ReactionChoice['9️⃣']]: RoleName.tanner,
     [ReactionChoice['🔟']]: RoleName.troublemaker,
-    [ReactionChoice['🅰️']]: RoleName.villager,
-    [ReactionChoice['🅱️']]: RoleName.villager,
+    [ReactionChoice['🇦']]: RoleName.villager,
+    [ReactionChoice['🇧']]: RoleName.villager,
+    [ReactionChoice['🇨']]: RoleName.villager,
   };
   const rolesText = Object.keys(specialRoles).reduce(
     (acc, emoji) =>

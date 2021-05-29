@@ -1,9 +1,4 @@
-import {
-  Guild,
-  StreamDispatcher,
-  VoiceChannel,
-  VoiceConnection,
-} from 'discord.js';
+import { StreamDispatcher, VoiceChannel, VoiceConnection } from 'discord.js';
 import { EMPTY_VOICE_CHECK_TIME } from './Constants';
 import { getDiscordInstance } from './DiscordClient';
 import { Sound } from './enums/Sound';

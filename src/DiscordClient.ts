@@ -1,4 +1,4 @@
-import Discord, { Guild, User } from 'discord.js';
+import Discord, { User } from 'discord.js';
 import glob from 'glob';
 import { promisify } from 'util';
 import { Prefix } from './Config';

@@ -228,7 +228,7 @@ export async function ChoosePlayer(
     Log.error('Reaction timed out');
     await player.send('Reaction timed out. Please make a selection.');
     if (retryCounter + 1 < MAX_RETRIES) {
-      await ChoosePlayer(
+      return await ChoosePlayer(
         allPlayers,
         player,
         choosePlayerType,
@@ -238,7 +238,6 @@ export async function ChoosePlayer(
     } else {
       throw responseError;
     }
-    return [];
   }
 }
 

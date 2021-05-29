@@ -1,4 +1,4 @@
-import Discord, { User } from 'discord.js';
+import Discord, { Guild, User } from 'discord.js';
 import glob from 'glob';
 import { promisify } from 'util';
 import { Prefix } from './Config';
@@ -24,6 +24,16 @@ class DiscordClient {
 
   get commands() {
     return this._commands;
+  }
+
+  public isConnectedToGuildVoice(guildId: string): boolean {
+    if (!this._client.voice) {
+      return false;
+    } else {
+      return this._client.voice.connections
+        .map((voiceCon) => voiceCon.channel.guild.id)
+        .includes(guildId);
+    }
   }
 
   constructor(token: string) {

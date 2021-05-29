@@ -59,7 +59,6 @@ export class Seer extends Role {
     }
     await player.send('You go back to sleep.');
 
-    // await player.send('You go back to sleep.');
     Log.info('Seer turn played.');
   }
 

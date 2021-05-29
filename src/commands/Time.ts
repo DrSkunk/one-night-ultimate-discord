@@ -18,7 +18,6 @@ async function execute(msg: Message): Promise<void> {
   if (!client) {
     throw new Error('Discord did not initialize');
   }
-  //   const gameManager = getGamesManagerInstance();
   try {
     const game = getGamesManagerInstance().getGame(textChannel);
     const { minutes, seconds } = game.remainingTime;

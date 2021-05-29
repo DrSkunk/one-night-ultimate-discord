@@ -15,7 +15,6 @@ import { Role } from './roles/Role';
 import { ChoosePlayer } from './ConversationHelper';
 import { Time } from './types/Time';
 import { ChoosePlayerType } from './enums/ChoosePlayer';
-import { getSoundManagerInstance } from './SoundManager';
 import {
   callOrder,
   distributeRoles,
@@ -26,6 +25,7 @@ import {
   sendRoleMessages,
   shuffle,
 } from './GameLogic';
+import { SoundManager } from './SoundManager';
 
 export class Game {
   public readonly players: Player[];
@@ -38,6 +38,7 @@ export class Game {
   public newDoppelgangerRole: RoleName | null;
   private _hasVoice: boolean;
   private _initiator: User;
+  private _soundManager: SoundManager;
 
   constructor(
     players: GuildMember[],
@@ -58,9 +59,10 @@ export class Game {
     this._startTime = null;
     this.newDoppelgangerRole = null;
     this._initiator = initiator;
+    this._soundManager = new SoundManager(voiceChannel.guild.id);
 
     try {
-      getSoundManagerInstance().voiceChannel = voiceChannel;
+      this._soundManager.voiceChannel = voiceChannel;
       this._hasVoice = true;
       Log.info('Joining voice channel.');
     } catch (error) {
@@ -127,7 +129,7 @@ And with these roles: ${this._chosenRoles.join(', ')}`
     this._startGameState = this.gameState.copy();
 
     if (this._hasVoice) {
-      getSoundManagerInstance().startNightLoop();
+      this._soundManager.startNightLoop();
     }
 
     const invalidPlayerIDs = await sendRoleMessages(
@@ -168,7 +170,7 @@ Please check your privacy settings.`
     Log.info('Night over');
 
     if (this._hasVoice) {
-      getSoundManagerInstance().stopNightLoop();
+      this._soundManager.stopNightLoop();
     }
 
     this._startTime = new Date();
@@ -186,7 +188,7 @@ Please check your privacy settings.`
     );
 
     if (this._hasVoice) {
-      getSoundManagerInstance().playGong();
+      this._soundManager.playGong();
     }
 
     await this.sendChannelMessage(
@@ -203,7 +205,7 @@ Please check your privacy settings.`
 
   private async endGame() {
     if (this._hasVoice) {
-      getSoundManagerInstance().playGong();
+      this._soundManager.playGong();
     }
     await this.sendChannelMessage(
       `Everybody stop talking! That means you ${this.tagPlayersText}

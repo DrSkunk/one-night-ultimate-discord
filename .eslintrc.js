@@ -12,7 +12,7 @@ module.exports = {
     'plugin:prettier/recommended',
   ],
   rules: {
-    'no-console': 0,
-    'prettier/prettier': 2,
+    'no-console': 'error',
+    'prettier/prettier': 'error',
   },
 };

@@ -21,10 +21,6 @@ const command: Command = {
       optional: true,
       name: 'quick',
     },
-    {
-      optional: true,
-      name: 'voice channel name',
-    },
   ],
   execute,
   adminOnly: false,

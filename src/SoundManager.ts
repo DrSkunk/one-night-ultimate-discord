@@ -8,11 +8,13 @@ export class SoundManager {
   private _voiceChannel: VoiceChannel | null;
   private _connection: VoiceConnection | null;
   private _dispatcher: StreamDispatcher | null;
+  private _guildId: string;
 
-  constructor() {
+  constructor(guildId: string) {
     this._voiceChannel = null;
     this._connection = null;
     this._dispatcher = null;
+    this._guildId = guildId;
     this.disconnectWhenEmpty();
   }
 
@@ -21,9 +23,9 @@ export class SoundManager {
     if (!client) {
       throw new Error('No Discord Client');
     }
-    Log.debug('userId', client.user.id);
-    if (this._voiceChannel && this._voiceChannel.members.get(client.user.id)) {
-      throw new Error('Already connected to a voice channel.');
+
+    if (client.isConnectedToGuildVoice(this._guildId)) {
+      throw new Error('Already connected to a voice channel of this guild.');
     }
     this._voiceChannel = voiceChannel;
   }
@@ -84,10 +86,4 @@ export class SoundManager {
       }
     }, EMPTY_VOICE_CHECK_TIME);
   }
-}
-
-const instance: SoundManager = new SoundManager();
-
-export function getSoundManagerInstance(): SoundManager {
-  return instance;
 }

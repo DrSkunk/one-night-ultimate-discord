@@ -26,6 +26,16 @@ class DiscordClient {
     return this._commands;
   }
 
+  public isConnectedToGuildVoice(guildId: string): boolean {
+    if (!this._client.voice) {
+      return false;
+    } else {
+      return this._client.voice.connections
+        .map((voiceCon) => voiceCon.channel.guild.id)
+        .includes(guildId);
+    }
+  }
+
   constructor(token: string) {
     this._token = token;
     this._client = new Discord.Client();

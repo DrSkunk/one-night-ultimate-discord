@@ -21,7 +21,6 @@ export class SoundManager {
     if (!client) {
       throw new Error('No Discord Client');
     }
-    Log.debug('userId', client.user.id);
     if (this._voiceChannel && this._voiceChannel.members.get(client.user.id)) {
       throw new Error('Already connected to a voice channel.');
     }

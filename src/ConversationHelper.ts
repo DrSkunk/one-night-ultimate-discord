@@ -28,8 +28,9 @@ export async function ChooseRoles(
     [ReactionChoice['8️⃣']]: RoleName.seer,
     [ReactionChoice['9️⃣']]: RoleName.tanner,
     [ReactionChoice['🔟']]: RoleName.troublemaker,
-    [ReactionChoice['🅰️']]: RoleName.villager,
-    [ReactionChoice['🅱️']]: RoleName.villager,
+    [ReactionChoice['🇦']]: RoleName.villager,
+    [ReactionChoice['🇧']]: RoleName.villager,
+    [ReactionChoice['🇨']]: RoleName.villager,
   };
   const rolesText = Object.keys(specialRoles).reduce(
     (acc, emoji) =>
@@ -124,7 +125,7 @@ export async function ChooseToDoAction(
   text: string
 ): Promise<boolean> {
   const message = await player.send(text);
-  const reactions: string[] = ['✔️', '❌'];
+  const reactions: string[] = ['✅', '❌'];
   for (const reaction of reactions) {
     await message.react(reaction);
   }
@@ -228,7 +229,7 @@ export async function ChoosePlayer(
     Log.error('Reaction timed out');
     await player.send('Reaction timed out. Please make a selection.');
     if (retryCounter + 1 < MAX_RETRIES) {
-      await ChoosePlayer(
+      return await ChoosePlayer(
         allPlayers,
         player,
         choosePlayerType,
@@ -238,7 +239,6 @@ export async function ChoosePlayer(
     } else {
       throw responseError;
     }
-    return [];
   }
 }
 

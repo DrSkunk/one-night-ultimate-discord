@@ -11,6 +11,8 @@ Server application made in typescript that allows a discord server to play the g
 
 Check the `help` command for all commands.
 
+[Click here to invite the bot to your server.](https://discord.com/api/oauth2/authorize?client_id=843451299973693472&permissions=0&scope=bot)
+
 ## Installation
 
 This requires [NodeJS](https://nodejs.org/en/) to be installed.
@@ -27,8 +29,6 @@ Copy `.env.example` to `.env` and fill in your details:
 - `DISCORD_TOKEN`: Your Discord bot token.
 
 You can create a Discord bot token by going to [the Discord developer portal](https://discord.com/developers/applications/) to create a new application. Then go to `Bot` and click `Copy` under `Token`.
-
-You can find your Guild ID and Text channel ID by enabling developer mode on your Discord client and then rightclicking the server/channel and press `Copy ID`.
 
 ## Credits
 

@@ -16,6 +16,12 @@ async function execute(msg: Message): Promise<void> {
   if (!client) {
     throw new Error('Discord did not initialize');
   }
-  msg.author.send(`You can read the rules here: ${RULES_URL}`);
+  try {
+    await msg.author.send(`You can read the rules here: ${RULES_URL}`);
+  } catch (error) {
+    msg.reply(
+      `I cannot send you a DM with the rules because of your privacy settings. This is needed to be able to play the game.`
+    );
+  }
 }
 export = command;

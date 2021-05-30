@@ -172,6 +172,9 @@ Please check your privacy settings.`
     if (this._hasVoice) {
       this._soundManager.stopNightLoop();
     }
+    if (this._hasVoice) {
+      this._soundManager.playGong();
+    }
 
     this._startTime = new Date();
 
@@ -268,6 +271,9 @@ ${this.gameState.toString()}`;
   }
 
   private stopGame() {
+    if (this._hasVoice) {
+      this._soundManager.stop();
+    }
     getGamesManagerInstance().stopGame(this._textChannel);
   }
 }

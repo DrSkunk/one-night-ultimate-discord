@@ -77,6 +77,12 @@ export class SoundManager {
     await this.fadeOut(volume - 0.025);
   }
 
+  public stop(): void {
+    if (this._dispatcher) {
+      this._dispatcher.destroy();
+    }
+  }
+
   private disconnectWhenEmpty() {
     const intervalId = setInterval(() => {
       if (this._voiceChannel && this._voiceChannel.members.size === 1) {

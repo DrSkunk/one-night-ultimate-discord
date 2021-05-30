@@ -135,15 +135,28 @@ Table roles: seer, villager, troublemaker`);
     });
 
     it('it should switch two player roles', function () {
-      const players = Array.from({ length: 3 }, () => newPlayer());
+      const players = Array.from({ length: 4 }, (_, i) =>
+        newPlayer(i.toString())
+      );
 
       const gameState = new GameState();
       gameState.playerRoles.robber = [players[0]];
-      gameState.playerRoles.mason = [players[1], players[2]];
+      gameState.playerRoles.werewolf = [players[1]];
+      gameState.playerRoles.seer = [players[2]];
+      gameState.playerRoles.troublemaker = [players[3]];
 
       gameState.switchPlayerRoles(players[0], players[2]);
       expect(gameState.playerRoles.robber).to.be.eql([players[2]]);
-      expect(gameState.playerRoles.mason).to.be.eql([players[1], players[0]]);
+      expect(gameState.playerRoles.werewolf).to.be.eql([players[1]]);
+      expect(gameState.playerRoles.seer).to.be.eql([players[0]]);
+      expect(gameState.playerRoles.troublemaker).to.be.eql([players[3]]);
+
+      gameState.switchPlayerRoles(players[2], players[1]);
+
+      expect(gameState.playerRoles.robber).to.be.eql([players[1]]);
+      expect(gameState.playerRoles.werewolf).to.be.eql([players[2]]);
+      expect(gameState.playerRoles.seer).to.be.eql([players[0]]);
+      expect(gameState.playerRoles.troublemaker).to.be.eql([players[3]]);
     });
   });
 });

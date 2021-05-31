@@ -1,5 +1,12 @@
 import { expect } from 'chai';
-import { Client, SnowflakeUtil, GuildMember, Guild, User } from 'discord.js';
+import {
+  Client,
+  SnowflakeUtil,
+  GuildMember,
+  Guild,
+  User,
+  Collection,
+} from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { GameState } from '../src/GameState';
 import { Player } from '../src/Player';
@@ -25,6 +32,18 @@ function newPlayer(id = SnowflakeUtil.generate()) {
   return new Player(gm);
 }
 
+function toPlayerCollection(players: Player[]): Collection<string, Player> {
+  const result = new Collection<string, Player>();
+  for (const player of players) {
+    result.set(player.id, player);
+  }
+  return result;
+}
+
+function checkRole(gameState: GameState, role: RoleName, players: Player[]) {
+  expect(gameState.playerRoles[role]).to.be.eql(toPlayerCollection(players));
+}
+
 describe('GameState', function () {
   describe('Print', function () {
     const gameState = new GameState();
@@ -35,15 +54,18 @@ describe('GameState', function () {
       newPlayer('44'),
       newPlayer('55'),
     ];
-    gameState.playerRoles.doppelganger = [players[0]];
-    gameState.playerRoles.werewolf = [players[1], players[2]];
-    gameState.playerRoles.mason = [players[3], players[4]];
+    gameState.playerRoles.doppelganger = toPlayerCollection([players[0]]);
+    gameState.playerRoles.werewolf = toPlayerCollection([
+      players[1],
+      players[2],
+    ]);
+    gameState.playerRoles.mason = toPlayerCollection([players[3], players[4]]);
 
     gameState.tableRoles = [new Seer(), new Villager(), new Troublemaker()];
 
-    expect(gameState.toString()).to.equal(`Player roles:
+    expect(gameState.print(RoleName.seer)).to.equal(`Player roles:
 
-doppelganger: 11
+doppelganger as seer: 11
 werewolf: 22, 33
 mason: 44, 55
 
@@ -54,7 +76,10 @@ Table roles: seer, villager, troublemaker`);
       const gameState = new GameState();
       const player1 = newPlayer();
       const player2 = newPlayer();
-      gameState.playerRoles.doppelganger = [player1, player2];
+      gameState.playerRoles.doppelganger = toPlayerCollection([
+        player1,
+        player2,
+      ]);
       expect(gameState.getRoleName(player1)).to.be.eq(RoleName.doppelganger);
       expect(gameState.getRoleName(player2)).to.be.eq(RoleName.doppelganger);
     });
@@ -74,9 +99,9 @@ Table roles: seer, villager, troublemaker`);
       expect(clonedGameState.playerRoles).to.have.property(
         RoleName.doppelganger
       );
-      if (gameState.playerRoles.doppelganger) {
-        gameState.playerRoles.doppelganger.push(newPlayer(), newPlayer());
-      }
+
+      const players = Array.from({ length: 2 }, () => newPlayer());
+      gameState.playerRoles.doppelganger = toPlayerCollection(players);
       expect(gameState.playerRoles)
         .to.have.property(RoleName.doppelganger)
         .to.have.length(2);
@@ -91,8 +116,11 @@ Table roles: seer, villager, troublemaker`);
       const players = Array.from({ length: 3 }, () => newPlayer());
 
       const gameState = new GameState();
-      gameState.playerRoles.drunk = [players[0]];
-      gameState.playerRoles.werewolf = [players[1], players[2]];
+      gameState.playerRoles.drunk = toPlayerCollection([players[0]]);
+      gameState.playerRoles.werewolf = toPlayerCollection([
+        players[1],
+        players[2],
+      ]);
       gameState.tableRoles = [
         new Doppelganger(),
         new Villager(),
@@ -117,15 +145,18 @@ Table roles: seer, villager, troublemaker`);
       const players = Array.from({ length: 3 }, () => newPlayer());
 
       const gameState = new GameState();
-      gameState.playerRoles.drunk = [players[0], players[1]];
-      gameState.playerRoles.robber = [players[2]];
+      gameState.playerRoles.drunk = toPlayerCollection([
+        players[0],
+        players[1],
+      ]);
+      gameState.playerRoles.robber = toPlayerCollection([players[2]]);
       gameState.tableRoles = [new Seer(), new Werewolf(), new Werewolf()];
 
       expect(gameState.playerRoles.drunk).to.have.length(2);
       expect(gameState.playerRoles.robber).to.have.length(1);
 
       gameState.switchTableCard(players[1], 1);
-      expect(gameState.playerRoles.drunk).to.be.eql([players[0]]);
+      checkRole(gameState, RoleName.drunk, [players[0]]);
       expect(gameState.playerRoles.werewolf).to.have.length(1);
       expect(gameState.tableRoles).to.be.eql([
         new Seer(),
@@ -140,23 +171,23 @@ Table roles: seer, villager, troublemaker`);
       );
 
       const gameState = new GameState();
-      gameState.playerRoles.robber = [players[0]];
-      gameState.playerRoles.werewolf = [players[1]];
-      gameState.playerRoles.seer = [players[2]];
-      gameState.playerRoles.troublemaker = [players[3]];
+      gameState.playerRoles.robber = toPlayerCollection([players[0]]);
+      gameState.playerRoles.werewolf = toPlayerCollection([players[1]]);
+      gameState.playerRoles.seer = toPlayerCollection([players[2]]);
+      gameState.playerRoles.troublemaker = toPlayerCollection([players[3]]);
 
       gameState.switchPlayerRoles(players[0], players[2]);
-      expect(gameState.playerRoles.robber).to.be.eql([players[2]]);
-      expect(gameState.playerRoles.werewolf).to.be.eql([players[1]]);
-      expect(gameState.playerRoles.seer).to.be.eql([players[0]]);
-      expect(gameState.playerRoles.troublemaker).to.be.eql([players[3]]);
+      checkRole(gameState, RoleName.robber, [players[2]]);
+      checkRole(gameState, RoleName.werewolf, [players[1]]);
+      checkRole(gameState, RoleName.seer, [players[0]]);
+      checkRole(gameState, RoleName.troublemaker, [players[3]]);
 
       gameState.switchPlayerRoles(players[2], players[1]);
 
-      expect(gameState.playerRoles.robber).to.be.eql([players[1]]);
-      expect(gameState.playerRoles.werewolf).to.be.eql([players[2]]);
-      expect(gameState.playerRoles.seer).to.be.eql([players[0]]);
-      expect(gameState.playerRoles.troublemaker).to.be.eql([players[3]]);
+      checkRole(gameState, RoleName.robber, [players[1]]);
+      checkRole(gameState, RoleName.werewolf, [players[2]]);
+      checkRole(gameState, RoleName.seer, [players[0]]);
+      checkRole(gameState, RoleName.troublemaker, [players[3]]);
     });
   });
 });

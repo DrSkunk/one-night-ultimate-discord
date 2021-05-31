@@ -1,4 +1,4 @@
-import Discord, { User } from 'discord.js';
+import Discord, { User, VoiceChannel } from 'discord.js';
 import glob from 'glob';
 import { promisify } from 'util';
 import { Prefix } from './Config';
@@ -26,10 +26,17 @@ class DiscordClient {
     return this._commands;
   }
 
-  public isConnectedToGuildVoice(guildId: string): boolean {
+  public isUsingVoice(guildId: string, voiceChannel: VoiceChannel): boolean {
     if (!this._client.voice) {
       return false;
     } else {
+      for (const connection of this._client.voice.connections.array()) {
+        // If connected to same channel, voice is available
+        if (connection.channel.id === voiceChannel.id) {
+          return false;
+        }
+      }
+      // Return true if there's a different voice channel used in the same guild
       return this._client.voice.connections
         .map((voiceCon) => voiceCon.channel.guild.id)
         .includes(guildId);
@@ -99,6 +106,9 @@ export function initDiscord(token: string): void {
   instance = new DiscordClient(token);
 }
 
-export function getDiscordInstance(): DiscordClient | null {
+export function getDiscordInstance(): DiscordClient {
+  if (!instance) {
+    throw new Error('Discord client not started.');
+  }
   return instance;
 }

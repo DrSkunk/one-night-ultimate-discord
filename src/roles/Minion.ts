@@ -10,10 +10,7 @@ export class Minion extends Role {
 
   async doTurn(game: Game, player: Player): Promise<void> {
     const gameState = game.gameState;
-    if (
-      !gameState.playerRoles.werewolf ||
-      gameState.playerRoles.werewolf?.length === 0
-    ) {
+    if (gameState.playerRoles.werewolf.size === 0) {
       const prompt = 'You wake up and see no werewolves among the players.';
       await AcknowledgeMessage(player, prompt);
     } else {
@@ -21,7 +18,7 @@ export class Minion extends Role {
         .map((otherWerewolf) => otherWerewolf.name)
         .join(' and ');
       const werewolfSentence =
-        gameState.playerRoles.werewolf.length === 1
+        gameState.playerRoles.werewolf.size === 1
           ? 'player is a werewolf'
           : 'players are werewolves';
       const prompt = `You wake up and see that the following ${werewolfSentence}: ${names}`;

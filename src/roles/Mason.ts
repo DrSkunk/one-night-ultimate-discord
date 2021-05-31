@@ -10,7 +10,7 @@ export class Mason extends Role {
 
   async doTurn(game: Game, player: Player): Promise<void> {
     const gameState = game.gameState;
-    if (gameState.playerRoles.mason?.length !== 1) {
+    if (gameState.playerRoles.mason.size !== 1) {
       const masons = gameState.playerRoles.mason;
       // Assert that there are masons
       if (masons === undefined) {
@@ -19,8 +19,7 @@ export class Mason extends Role {
       const otherMasons = masons.filter(
         (otherPlayer) => otherPlayer.id !== player.id
       );
-      const masonSentence =
-        otherMasons.length === 1 ? 'mason is' : 'masons are';
+      const masonSentence = otherMasons.size === 1 ? 'mason is' : 'masons are';
       const otherNames = otherMasons
         .map((otherMason) => otherMason.name)
         .join(' and ');

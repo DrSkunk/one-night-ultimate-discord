@@ -9,34 +9,42 @@ export class SoundManager {
   private _connection: VoiceConnection | null;
   private _dispatcher: StreamDispatcher | null;
   private _guildId: string;
+  private _silentNight: boolean;
+  private _silent: boolean;
 
-  constructor(guildId: string) {
+  constructor(guildId: string, silentNight: boolean, silent: boolean) {
     this._voiceChannel = null;
     this._connection = null;
     this._dispatcher = null;
     this._guildId = guildId;
+    this._silentNight = silentNight;
+    this._silent = silent;
     this.disconnectWhenEmpty();
   }
 
   set voiceChannel(voiceChannel: VoiceChannel) {
     const client = getDiscordInstance();
-    if (!client) {
-      throw new Error('No Discord Client');
-    }
-
-    if (client.isConnectedToGuildVoice(this._guildId)) {
+    if (client.isUsingVoice(this._guildId, voiceChannel)) {
       throw new Error('Already connected to a voice channel of this guild.');
+    }
+    if (this._silent) {
+      throw new Error('Running in silent mode.');
     }
     this._voiceChannel = voiceChannel;
   }
 
   public async startNightLoop(): Promise<void> {
+    if (this._silentNight || this._silent) {
+      Log.info('Silent night mode, not playing night loop');
+      return;
+    }
     Log.info('Starting night loop');
 
     if (!this._voiceChannel) {
       return;
     }
     this._connection = await this._voiceChannel.join();
+    this._connection.voice?.setSelfDeaf(true);
     this._dispatcher = this.play(Sound.nightloop);
   }
 
@@ -45,11 +53,19 @@ export class SoundManager {
     if (!this._voiceChannel) {
       return;
     }
-    await this.fadeOut(1);
-    this._dispatcher = this.play(Sound.rooster);
+    if (!this._silentNight && !this._silent) {
+      await this.fadeOut(1);
+    }
+    if (!this._silent) {
+      this._dispatcher = this.play(Sound.rooster);
+    }
   }
 
   public playGong(): void {
+    if (this._silent) {
+      Log.info('Silent night mode, not playing "time almost up" sample');
+      return;
+    }
     Log.info('Playing "time almost up" sample');
     this.play(Sound.gong);
   }
@@ -74,7 +90,13 @@ export class SoundManager {
     }
     this._dispatcher.setVolume(volume);
     await new Promise((resolve) => setTimeout(resolve, 100));
-    await this.fadeOut(volume - 0.025);
+    await this.fadeOut(volume - 0.05);
+  }
+
+  public stop(): void {
+    if (this._dispatcher) {
+      this._dispatcher.destroy();
+    }
   }
 
   private disconnectWhenEmpty() {

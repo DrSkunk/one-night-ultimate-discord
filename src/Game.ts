@@ -1,4 +1,4 @@
-import { TextChannel, VoiceChannel, GuildMember, User } from 'discord.js';
+import { TextChannel, VoiceChannel, GuildMember } from 'discord.js';
 import {
   MAXIMUM_PLAYERS,
   MINIMUM_PLAYERS,
@@ -26,6 +26,7 @@ import {
   shuffle,
 } from './GameLogic';
 import { SoundManager } from './SoundManager';
+import { Phase } from './enums/Phase';
 
 export class Game {
   public readonly players: Player[];
@@ -37,15 +38,16 @@ export class Game {
   private _startTime: Date | null;
   public newDoppelgangerRole: RoleName | null;
   private _hasVoice: boolean;
-  private _initiator: User;
   private _soundManager: SoundManager;
+  private _phase: Phase;
 
   constructor(
     players: GuildMember[],
     textChannel: TextChannel,
     voiceChannel: VoiceChannel,
     chosenRoles: RoleName[],
-    initiator: User
+    silentNight: boolean,
+    silent: boolean
   ) {
     if (players.length < MINIMUM_PLAYERS || players.length > MAXIMUM_PLAYERS) {
       throw new Error('Invalid amount of players');
@@ -58,8 +60,12 @@ export class Game {
     this._started = false;
     this._startTime = null;
     this.newDoppelgangerRole = null;
-    this._initiator = initiator;
-    this._soundManager = new SoundManager(voiceChannel.guild.id);
+    this._soundManager = new SoundManager(
+      voiceChannel.guild.id,
+      silentNight,
+      silent
+    );
+    this._phase = Phase.night;
 
     try {
       this._soundManager.voiceChannel = voiceChannel;
@@ -67,12 +73,8 @@ export class Game {
       Log.info('Joining voice channel.');
     } catch (error) {
       this._hasVoice = false;
-      Log.info('Not joining voice, already in a voice channel.');
+      Log.info(error.message);
     }
-  }
-
-  public get initiator(): User {
-    return this._initiator;
   }
 
   public get startGameState(): GameState {
@@ -100,13 +102,8 @@ export class Game {
     return this.players.map(({ tag }) => tag).join(', ');
   }
 
-  public moveDoppelGanger(name: RoleName): void {
-    const doppelgangerPlayer = (
-      this.gameState.playerRoles.doppelganger?.slice() as Player[]
-    )[0];
-    this.gameState.playerRoles[name]?.push(doppelgangerPlayer);
-    this.gameState.playerRoles.doppelganger = [];
-    this.newDoppelgangerRole = name;
+  public get phase(): Phase {
+    return this._phase;
   }
 
   public async start(): Promise<void> {
@@ -167,10 +164,14 @@ Please check your privacy settings.`
         p.send('You wake up! Go to the discussion text channel to continue.')
       )
     );
+    this._phase = Phase.discussion;
     Log.info('Night over');
 
     if (this._hasVoice) {
       this._soundManager.stopNightLoop();
+    }
+    if (this._hasVoice) {
+      this._soundManager.playGong();
     }
 
     this._startTime = new Date();
@@ -187,15 +188,19 @@ Please check your privacy settings.`
       setTimeout(resolve, ROUND_TIME_MILLISECONDS - NIGHT_ALMOST_OVER_REMINDER)
     );
 
-    if (this._hasVoice) {
-      this._soundManager.playGong();
+    if (this.phase === Phase.ending) {
+      return;
     }
-
     await this.sendChannelMessage(
       `${this.tagPlayersText} ${
         NIGHT_ALMOST_OVER_REMINDER / 1000
       } seconds remaining!`
     );
+
+    if (this._hasVoice) {
+      this._soundManager.playGong();
+    }
+
     setTimeout(() => this.endGame(), NIGHT_ALMOST_OVER_REMINDER);
   }
 
@@ -203,7 +208,11 @@ Please check your privacy settings.`
     return this._textChannel.send(text);
   }
 
-  private async endGame() {
+  public async endGame(): Promise<void> {
+    if (this._phase === Phase.ending) {
+      return;
+    }
+    this._phase = Phase.ending;
     if (this._hasVoice) {
       this._soundManager.playGong();
     }
@@ -258,16 +267,19 @@ Reply to the DM you just received to vote for who to kill.`
     await winMessage.react('🥳');
 
     const stateText = `Results\n**Roles before the night**:
-${this._startGameState.toString()}
+${this._startGameState.print()}
 
 **Roles after the night**:
-${this.gameState.toString()}`;
+${this.gameState.print(this.newDoppelgangerRole)}`;
     await this.sendChannelMessage(stateText);
     Log.info('Game has ended');
     this.stopGame();
   }
 
   private stopGame() {
+    if (this._hasVoice) {
+      this._soundManager.stop();
+    }
     getGamesManagerInstance().stopGame(this._textChannel);
   }
 }

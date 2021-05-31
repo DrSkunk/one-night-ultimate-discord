@@ -1,4 +1,10 @@
-import { MessageReaction, TextChannel, User } from 'discord.js';
+import {
+  Collection,
+  GuildMember,
+  MessageReaction,
+  TextChannel,
+  User,
+} from 'discord.js';
 import { REACTION_WAIT_TIME, MAX_RETRIES, SETUP_WAIT_TIME } from './Constants';
 import { ChoosePlayerType } from './enums/ChoosePlayer';
 import { ReactionChoice } from './enums/ReactionChoice';
@@ -280,4 +286,41 @@ export async function ChoosePlayerOrTable(
       throw responseError;
     }
   }
+}
+
+export async function getPlayerList(
+  textChannel: TextChannel,
+  potentialPlayers: GuildMember[],
+  text: string
+): Promise<User[]> {
+  const reactions: string[] = ['✅'];
+  const filter = (reaction: MessageReaction, user: User) => {
+    return (
+      reactions.includes(reaction.emoji.name) &&
+      !!potentialPlayers.find(({ id }) => id === user.id)
+    );
+  };
+
+  const message = await textChannel.send(text);
+
+  for (const reaction of reactions) {
+    await message.react(reaction);
+  }
+  let collected: Collection<string, MessageReaction>;
+  try {
+    collected = await message.awaitReactions(filter, {
+      maxUsers: potentialPlayers.length,
+      time: REACTION_WAIT_TIME,
+      errors: ['time'],
+    });
+  } catch (errorCollected) {
+    collected = errorCollected;
+  }
+  Log.log('Collected a reaction');
+  if (collected.array().length === 0) {
+    return [];
+  }
+  return (await collected.array()[0].users.fetch())
+    .array()
+    .filter(({ bot }) => !bot);
 }

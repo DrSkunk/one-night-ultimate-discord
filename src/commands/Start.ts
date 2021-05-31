@@ -1,25 +1,39 @@
-import { Message, TextChannel } from 'discord.js';
+import { GuildMember, Message, TextChannel } from 'discord.js';
 import {
   CARDS_ON_TABLE,
   MAXIMUM_PLAYERS,
   MAX_ROLES_COUNT,
   MINIMUM_PLAYERS,
 } from '../Constants';
-import { ChooseRoles } from '../ConversationHelper';
-import { getDiscordInstance } from '../DiscordClient';
+import { ChooseRoles, getPlayerList } from '../ConversationHelper';
 import { RoleName } from '../enums/RoleName';
 import { getGamesManagerInstance } from '../GamesManager';
 import { Log } from '../Log';
 import { Command } from '../types/Command';
 
+enum Optional {
+  quick = 'quick',
+  silentnight = 'silentnight',
+  silent = 'silent',
+}
+
 const command: Command = {
   names: ['start'],
-  description:
-    "Start a new game. Supply the _'quick'_ option to reuse previous settings.",
+  description: `Start a new game. Supply the _'quick'_ option to reuse previous settings.
+Supply the _'silentnight'_  option to mute the ambient night noises.
+Supply the _'silent'_ option to mute all sound effects.`,
   params: [
     {
       optional: true,
-      name: 'quick',
+      name: Optional.quick,
+    },
+    {
+      optional: true,
+      name: Optional.silentnight,
+    },
+    {
+      optional: true,
+      name: Optional.silent,
     },
   ],
   execute,
@@ -27,17 +41,13 @@ const command: Command = {
 };
 
 async function execute(msg: Message, args: string[]): Promise<void> {
-  const client = getDiscordInstance();
-  if (!client) {
-    throw new Error('Discord did not initialize');
-  }
   const textChannel = msg.channel as TextChannel;
   const gamesManager = getGamesManagerInstance();
 
-  let quickStart = false;
-  if (args[0] === 'quick') {
-    quickStart = true;
-  }
+  const lowerArgs = args.map((arg) => arg.toLowerCase());
+  const quickStart = lowerArgs.includes(Optional.quick);
+  const silentNight = lowerArgs.includes(Optional.silentnight);
+  const silent = lowerArgs.includes(Optional.silent);
 
   const voiceChannel = msg.member?.voice.channel;
   if (!voiceChannel) {
@@ -51,7 +61,24 @@ async function execute(msg: Message, args: string[]): Promise<void> {
     textChannel.send(`Empty voice channel`);
     return;
   }
-  const players = members.filter((m) => !m.user.bot).array();
+  const potentialPlayers = members.filter((m) => !m.user.bot).array();
+  let players: GuildMember[];
+  try {
+    const playerTags = potentialPlayers.map((p) => `<@${p.id}>`).join(', ');
+    const text = `${playerTags}\nClick on ✅ to join the game.`;
+    players = (await getPlayerList(textChannel, potentialPlayers, text)).map(
+      ({ id }) => {
+        const member = members.get(id);
+        if (!member) {
+          throw new Error('A playing player left the voice channel.');
+        }
+        return member;
+      }
+    );
+  } catch (error) {
+    textChannel.send(error.message);
+    return;
+  }
 
   const author = msg.author;
   const amountToPick =
@@ -69,10 +96,11 @@ async function execute(msg: Message, args: string[]): Promise<void> {
     }
     if (quickStart) {
       await gamesManager.quickStartGame(
-        msg.author,
         players,
         msg.channel as TextChannel,
-        voiceChannel
+        voiceChannel,
+        silentNight,
+        silent
       );
     } else {
       const roles = [
@@ -80,10 +108,11 @@ async function execute(msg: Message, args: string[]): Promise<void> {
         ...(await ChooseRoles(author, textChannel, amountToPick)),
       ];
       await gamesManager.startNewGame(
-        msg.author,
         players,
         msg.channel as TextChannel,
         voiceChannel,
+        silentNight,
+        silent,
         roles
       );
     }

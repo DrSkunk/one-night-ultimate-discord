@@ -1,5 +1,4 @@
 import { Message, TextChannel } from 'discord.js';
-import { getDiscordInstance } from '../DiscordClient';
 import { getGamesManagerInstance } from '../GamesManager';
 import { Command } from '../types/Command';
 
@@ -14,10 +13,6 @@ const command: Command = {
 async function execute(msg: Message): Promise<void> {
   const textChannel = msg.channel as TextChannel;
 
-  const client = getDiscordInstance();
-  if (!client) {
-    throw new Error('Discord did not initialize');
-  }
   try {
     const game = getGamesManagerInstance().getGame(textChannel);
     const { minutes, seconds } = game.remainingTime;

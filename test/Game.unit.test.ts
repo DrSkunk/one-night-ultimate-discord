@@ -7,6 +7,7 @@ import {
   VoiceChannel,
   GuildMember,
   User,
+  Collection,
 } from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { Game } from '../src/Game';
@@ -55,6 +56,14 @@ function newGame(size: number, players: Player[] = []): Game {
   );
 }
 
+function toPlayerCollection(players: Player[]): Collection<string, Player> {
+  const result = new Collection<string, Player>();
+  for (const player of players) {
+    result.set(player.id, player);
+  }
+  return result;
+}
+
 describe('Game', function () {
   describe('Initialisation and start', function () {
     it("Don't start with invalid amount of players", function () {
@@ -91,15 +100,27 @@ describe('Game', function () {
         expect(startedGame).to.be.false;
       }
       const players = Array.from({ length: 3 }, () => newPlayer());
+      const playersSet = new Collection();
+      for (const player of players) {
+        playersSet.set(player.id, player);
+      }
       let game = newGame(players.length, players);
 
-      game.gameState.playerRoles.doppelganger = players.slice(0, 2);
+      game.gameState.playerRoles.doppelganger = toPlayerCollection(
+        players.slice(0, 2)
+      );
       await testGame(game);
 
       game = newGame(players.length, players);
-      game.gameState.playerRoles.doppelganger = [players[0]];
-      game.gameState.playerRoles.werewolf = players.slice(1, 3);
-      game.gameState.playerRoles.robber = players.slice(5, 2);
+      game.gameState.playerRoles.doppelganger = toPlayerCollection([
+        players[0],
+      ]);
+      game.gameState.playerRoles.werewolf = toPlayerCollection(
+        players.slice(1, 3)
+      );
+      game.gameState.playerRoles.robber = toPlayerCollection(
+        players.slice(5, 2)
+      );
 
       await testGame(game);
     });
@@ -110,8 +131,10 @@ describe('Game', function () {
 
       const game = newGame(players.length, players);
 
-      game.gameState.playerRoles.doppelganger = [players[0]];
-      game.gameState.playerRoles[roleName] = [players[1]];
+      game.gameState.playerRoles.doppelganger = toPlayerCollection([
+        players[0],
+      ]);
+      game.gameState.playerRoles[roleName] = toPlayerCollection([players[1]]);
       expect(game.gameState.playerRoles)
         .to.have.property(RoleName.doppelganger)
         .to.have.length(1);
@@ -119,7 +142,7 @@ describe('Game', function () {
         .to.have.property(roleName)
         .to.have.length(1);
 
-      game.moveDoppelGanger(roleName);
+      game.gameState.moveDoppelGanger(roleName);
       expect(game.gameState.playerRoles)
         .to.have.property(RoleName.doppelganger)
         .to.have.length(0);

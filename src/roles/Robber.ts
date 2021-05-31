@@ -34,7 +34,7 @@ export class Robber extends Role {
       );
       await player.send('You go back to sleep.');
     } else {
-      await player.send('You don\t steal a role and go back to sleep.');
+      await player.send("You don't steal a role and go back to sleep.");
     }
     Log.info('Robber turn played.');
   }

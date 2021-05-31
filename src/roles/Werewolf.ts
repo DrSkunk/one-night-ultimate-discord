@@ -10,7 +10,7 @@ export class Werewolf extends Role {
 
   async doTurn(game: Game, player: Player): Promise<void> {
     const { tableRoles, playerRoles } = game.gameState;
-    if (playerRoles.werewolf?.length !== 1) {
+    if (playerRoles.werewolf.size !== 1) {
       const werewolves = playerRoles.werewolf;
       // Assert that there are werewolves
       if (werewolves === undefined) {
@@ -24,7 +24,7 @@ export class Werewolf extends Role {
         .join(' and ');
 
       const werewolfSentence =
-        otherWerewolves.length === 1 ? 'werewolf is' : 'werewolves are';
+        otherWerewolves.size === 1 ? 'werewolf is' : 'werewolves are';
       const prompt = `You wake up and see that the other ${werewolfSentence} ${otherNames}.`;
       await AcknowledgeMessage(player, prompt);
 

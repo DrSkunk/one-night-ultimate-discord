@@ -72,7 +72,7 @@ export function distributeRoles(
       gameState.tableRoles.push(role);
     } else {
       const player = players[index];
-      gameState.playerRoles[role.name]?.push(player);
+      gameState.playerRoles[role.name].set(player.id, player);
     }
   }
   for (const roleName of Object.values(RoleName)) {
@@ -81,7 +81,7 @@ export function distributeRoles(
       const tableRolesLength = gameState.tableRoles.filter(
         (role) => role.name === roleName
       ).length;
-      const roleCount = roles.length + tableRolesLength;
+      const roleCount = roles.size + tableRolesLength;
       if (roleCount > MAX_ROLES_COUNT[roleName]) {
         throw new Error(
           `Invalid role distribution, There are ${roleCount} with role ${roleName} when there is a maximum of ${MAX_ROLES_COUNT[roleName]}`
@@ -137,20 +137,21 @@ export async function playAllTurns(game: Game): Promise<void> {
   const { startGameState } = game;
   for (const roleName of callOrder) {
     const players = startGameState.playerRoles[roleName];
-    if (players && players?.length > 0) {
+    if (players && players.size > 0) {
       const role = getRoleByName(roleName);
       let roles = players.map((player) => role.doTurn(game, player));
       if (
         game.newDoppelgangerRole === roleName &&
         isMimicRole(roleName) &&
         startGameState.playerRoles.doppelganger &&
-        startGameState.playerRoles.doppelganger?.length > 0
+        startGameState.playerRoles.doppelganger.size > 0
       ) {
         const doppelGangers = startGameState.playerRoles.doppelganger.map(
           (dplgnr) => role.doTurn(game, dplgnr)
         );
         roles = roles.concat(doppelGangers);
       }
+      Log.info(`Now executing ${role.name}`);
       await Promise.all(roles);
     } else if (game.chosenRoles.includes(roleName)) {
       const fakeTime = FAKE_USER_TIME + Math.floor(Math.random() * 5000);

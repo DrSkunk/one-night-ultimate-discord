@@ -22,7 +22,7 @@ export class Doppelganger extends Role {
     const chosenPlayerRole = gameState.getRole(chosenPlayer);
 
     if (isMimicRole(chosenPlayerRole.name)) {
-      game.moveDoppelGanger(chosenPlayerRole.name);
+      gameState.moveDoppelGanger(chosenPlayerRole.name);
       await player.send(
         `You see that ${chosenPlayer.name} has the role ${chosenPlayerRole.name}
 You now also have the role ${chosenPlayerRole.name}.

@@ -1,9 +1,10 @@
+import { Collection } from 'discord.js';
 import { RoleName } from './enums/RoleName';
 import { getRoleByName } from './GameLogic';
 import { Player } from './Player';
 import { Role } from './roles/Role';
 
-type PlayerRoles = { [key in RoleName]?: Player[] };
+type PlayerRoles = { [key in RoleName]: Collection<string, Player> };
 
 export class GameState {
   playerRoles: PlayerRoles;
@@ -11,18 +12,18 @@ export class GameState {
 
   constructor(
     playerRoles: PlayerRoles = {
-      [RoleName.doppelganger]: [],
-      [RoleName.werewolf]: [],
-      [RoleName.minion]: [],
-      [RoleName.mason]: [],
-      [RoleName.seer]: [],
-      [RoleName.robber]: [],
-      [RoleName.troublemaker]: [],
-      [RoleName.drunk]: [],
-      [RoleName.insomniac]: [],
-      [RoleName.villager]: [],
-      [RoleName.tanner]: [],
-      [RoleName.hunter]: [],
+      [RoleName.doppelganger]: new Collection(),
+      [RoleName.werewolf]: new Collection(),
+      [RoleName.minion]: new Collection(),
+      [RoleName.mason]: new Collection(),
+      [RoleName.seer]: new Collection(),
+      [RoleName.robber]: new Collection(),
+      [RoleName.troublemaker]: new Collection(),
+      [RoleName.drunk]: new Collection(),
+      [RoleName.insomniac]: new Collection(),
+      [RoleName.villager]: new Collection(),
+      [RoleName.tanner]: new Collection(),
+      [RoleName.hunter]: new Collection(),
     },
     tableRoles: Role[] = []
   ) {
@@ -34,7 +35,7 @@ export class GameState {
     let playerRoles = '';
     for (const roleName of Object.keys(this.playerRoles) as RoleName[]) {
       const players = this.playerRoles[roleName];
-      if (players?.length) {
+      if (players.size) {
         const playerTags = players.map(({ name: tag }) => tag).join(', ');
         playerRoles += `\n${roleName}: ${playerTags}`;
       }
@@ -46,7 +47,7 @@ export class GameState {
   public copy(): GameState {
     const newPlayerRoles: PlayerRoles = Object.assign({}, this.playerRoles);
     for (const roleName of Object.keys(this.playerRoles) as RoleName[]) {
-      newPlayerRoles[roleName] = this.playerRoles[roleName]?.slice();
+      newPlayerRoles[roleName] = this.playerRoles[roleName].clone();
     }
 
     const newTableRoles = this.tableRoles.slice();
@@ -60,7 +61,7 @@ export class GameState {
   public getRoleName(player: Player): RoleName {
     for (const roleName of Object.keys(this.playerRoles) as RoleName[]) {
       const players = this.playerRoles[roleName];
-      const foundPlayer = players?.find((p) => player.id === p.id);
+      const foundPlayer = players.find((p) => player.id === p.id);
       if (foundPlayer) {
         return roleName;
       }
@@ -74,30 +75,31 @@ export class GameState {
     // move Drunk to table
     this.tableRoles[tableCardIndex] = newTableCard;
     // Remove player from drunk rol
-    this.playerRoles.drunk = this.playerRoles.drunk?.filter(
+    this.playerRoles.drunk = this.playerRoles.drunk.filter(
       (p) => p.id !== player.id
     );
     // Add player to new role
-    this.playerRoles[newRole]?.push(player);
+    this.playerRoles[newRole].set(player.id, player);
   }
 
   public switchPlayerRoles(player1: Player, player2: Player): void {
     const roleName1 = this.getRoleName(player1);
-    const role1Index = this.playerRoles[roleName1]?.findIndex(
-      (p) => p.id === player1.id
-    );
-    if (role1Index === undefined) {
-      throw new Error('invalid player');
-    }
-    (this.playerRoles[roleName1] as Player[])[role1Index] = player2;
-
     const roleName2 = this.getRoleName(player2);
-    const role2Index = this.playerRoles[roleName2]?.findIndex(
-      (p) => p.id === player2.id
-    );
-    if (role2Index === undefined) {
-      throw new Error('invalid player');
+
+    if (!roleName1 || !roleName2) {
+      throw new Error('invalid player switch');
     }
-    (this.playerRoles[roleName2] as Player[])[role2Index] = player1;
+
+    this.playerRoles[roleName1].delete(player1.id);
+    this.playerRoles[roleName1].set(player2.id, player2);
+
+    this.playerRoles[roleName2].delete(player2.id);
+    this.playerRoles[roleName2].set(player1.id, player1);
+  }
+
+  public moveDoppelGanger(name: RoleName): void {
+    const doppelGangerPlayer = this.playerRoles.doppelganger.array()[0];
+    this.playerRoles[name].set(doppelGangerPlayer.id, doppelGangerPlayer);
+    this.playerRoles.doppelganger.clear();
   }
 }

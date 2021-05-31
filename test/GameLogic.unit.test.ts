@@ -1,5 +1,12 @@
 import { expect } from 'chai';
-import { Client, SnowflakeUtil, GuildMember, Guild, User } from 'discord.js';
+import {
+  Client,
+  SnowflakeUtil,
+  GuildMember,
+  Guild,
+  User,
+  Collection,
+} from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { Team } from '../src/enums/Team';
 import { getWinner } from '../src/GameLogic';
@@ -21,16 +28,27 @@ function newPlayer(id = SnowflakeUtil.generate()) {
   return new Player(gm);
 }
 
+function toPlayerCollection(players: Player[]): Collection<string, Player> {
+  const result = new Collection<string, Player>();
+  for (const player of players) {
+    result.set(player.id, player);
+  }
+  return result;
+}
+
 describe('GameLogic', function () {
   describe('getWinner', function () {
     const players = Array.from({ length: 6 }, () => newPlayer());
     const gameState = new GameState();
 
-    gameState.playerRoles.doppelganger = [players[0]];
-    gameState.playerRoles.werewolf = [players[1], players[2]];
-    gameState.playerRoles.villager = [players[3]];
-    gameState.playerRoles.tanner = [players[4]];
-    gameState.playerRoles.hunter = [players[5]];
+    gameState.playerRoles.doppelganger = toPlayerCollection([players[0]]);
+    gameState.playerRoles.werewolf = toPlayerCollection([
+      players[1],
+      players[2],
+    ]);
+    gameState.playerRoles.villager = toPlayerCollection([players[3]]);
+    gameState.playerRoles.tanner = toPlayerCollection([players[4]]);
+    gameState.playerRoles.hunter = toPlayerCollection([players[5]]);
 
     it('Nobody dies when everyone has one vote.', function () {
       const chosenPlayers = [

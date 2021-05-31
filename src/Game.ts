@@ -100,15 +100,6 @@ export class Game {
     return this.players.map(({ tag }) => tag).join(', ');
   }
 
-  public moveDoppelGanger(name: RoleName): void {
-    const doppelgangerPlayer = (
-      this.gameState.playerRoles.doppelganger?.slice() as Player[]
-    )[0];
-    this.gameState.playerRoles[name]?.push(doppelgangerPlayer);
-    this.gameState.playerRoles.doppelganger = [];
-    this.newDoppelgangerRole = name;
-  }
-
   public async start(): Promise<void> {
     if (this._started) {
       throw new Error('Game has already started');

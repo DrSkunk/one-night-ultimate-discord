@@ -24,7 +24,7 @@ export class SoundManager {
       throw new Error('No Discord Client');
     }
 
-    if (client.isConnectedToGuildVoice(this._guildId)) {
+    if (client.isUsingVoice(this._guildId, voiceChannel)) {
       throw new Error('Already connected to a voice channel of this guild.');
     }
     this._voiceChannel = voiceChannel;

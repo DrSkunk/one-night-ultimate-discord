@@ -181,15 +181,16 @@ Please check your privacy settings.`
       setTimeout(resolve, ROUND_TIME_MILLISECONDS - NIGHT_ALMOST_OVER_REMINDER)
     );
 
-    if (this._hasVoice) {
-      this._soundManager.playGong();
-    }
-
     await this.sendChannelMessage(
       `${this.tagPlayersText} ${
         NIGHT_ALMOST_OVER_REMINDER / 1000
       } seconds remaining!`
     );
+
+    if (this._hasVoice) {
+      this._soundManager.playGong();
+    }
+
     setTimeout(() => this.endGame(), NIGHT_ALMOST_OVER_REMINDER);
   }
 

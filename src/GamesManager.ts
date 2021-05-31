@@ -1,10 +1,4 @@
-import {
-  Collection,
-  TextChannel,
-  VoiceChannel,
-  GuildMember,
-  User,
-} from 'discord.js';
+import { Collection, TextChannel, VoiceChannel, GuildMember } from 'discord.js';
 import { CARDS_ON_TABLE } from './Constants';
 import { RoleName } from './enums/RoleName';
 import { Game } from './Game';
@@ -20,10 +14,11 @@ class GamesManager {
   }
 
   public quickStartGame(
-    initiator: User,
     players: GuildMember[],
     textChannel: TextChannel,
-    voiceChannel: VoiceChannel
+    voiceChannel: VoiceChannel,
+    silentNight: boolean,
+    silent: boolean
   ): void {
     const quickStartRoles = this._quickStart.get(textChannel.id);
     if (quickStartRoles === undefined) {
@@ -36,19 +31,21 @@ class GamesManager {
       );
     }
     this.startNewGame(
-      initiator,
       players,
       textChannel,
       voiceChannel,
+      silentNight,
+      silent,
       quickStartRoles
     );
   }
 
   public startNewGame(
-    initiator: User,
     players: GuildMember[],
     textChannel: TextChannel,
     voiceChannel: VoiceChannel,
+    silentNight: boolean,
+    silent: boolean,
     roleNames: RoleName[]
   ): void {
     if (this._games.has(textChannel.id)) {
@@ -62,7 +59,8 @@ class GamesManager {
       textChannel,
       voiceChannel,
       roleNames,
-      initiator
+      silentNight,
+      silent
     );
 
     this._games.set(textChannel.id, game);

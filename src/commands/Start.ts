@@ -11,14 +11,29 @@ import { getGamesManagerInstance } from '../GamesManager';
 import { Log } from '../Log';
 import { Command } from '../types/Command';
 
+enum Optional {
+  quick = 'quick',
+  silentnight = 'silentnight',
+  silent = 'silent',
+}
+
 const command: Command = {
   names: ['start'],
-  description:
-    "Start a new game. Supply the _'quick'_ option to reuse previous settings.",
+  description: `Start a new game. Supply the _'quick'_ option to reuse previous settings.
+Supply the _'silentnight'_  option to mute the ambient night noises.
+Supply the _'silent'_ option to mute all sound effects.`,
   params: [
     {
       optional: true,
-      name: 'quick',
+      name: Optional.quick,
+    },
+    {
+      optional: true,
+      name: Optional.silentnight,
+    },
+    {
+      optional: true,
+      name: Optional.silent,
     },
   ],
   execute,
@@ -29,10 +44,10 @@ async function execute(msg: Message, args: string[]): Promise<void> {
   const textChannel = msg.channel as TextChannel;
   const gamesManager = getGamesManagerInstance();
 
-  let quickStart = false;
-  if (args[0] === 'quick') {
-    quickStart = true;
-  }
+  const lowerArgs = args.map((arg) => arg.toLowerCase());
+  const quickStart = lowerArgs.includes(Optional.quick);
+  const silentNight = lowerArgs.includes(Optional.silentnight);
+  const silent = lowerArgs.includes(Optional.silent);
 
   const voiceChannel = msg.member?.voice.channel;
   if (!voiceChannel) {
@@ -81,10 +96,11 @@ async function execute(msg: Message, args: string[]): Promise<void> {
     }
     if (quickStart) {
       await gamesManager.quickStartGame(
-        msg.author,
         players,
         msg.channel as TextChannel,
-        voiceChannel
+        voiceChannel,
+        silentNight,
+        silent
       );
     } else {
       const roles = [
@@ -92,10 +108,11 @@ async function execute(msg: Message, args: string[]): Promise<void> {
         ...(await ChooseRoles(author, textChannel, amountToPick)),
       ];
       await gamesManager.startNewGame(
-        msg.author,
         players,
         msg.channel as TextChannel,
         voiceChannel,
+        silentNight,
+        silent,
         roles
       );
     }

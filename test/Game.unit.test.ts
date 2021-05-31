@@ -52,7 +52,8 @@ function newGame(size: number, players: Player[] = []): Game {
     textChannel,
     voiceChannel,
     roles,
-    users[0].user
+    false,
+    false
   );
 }
 

@@ -316,7 +316,7 @@ export async function getPlayerList(
   } catch (errorCollected) {
     collected = errorCollected;
   }
-  Log.info(collected);
+  Log.log('Collected a reaction');
   if (collected.array().length === 0) {
     return [];
   }

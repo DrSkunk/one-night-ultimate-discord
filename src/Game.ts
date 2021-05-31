@@ -1,4 +1,4 @@
-import { TextChannel, VoiceChannel, GuildMember, User } from 'discord.js';
+import { TextChannel, VoiceChannel, GuildMember } from 'discord.js';
 import {
   MAXIMUM_PLAYERS,
   MINIMUM_PLAYERS,
@@ -38,7 +38,6 @@ export class Game {
   private _startTime: Date | null;
   public newDoppelgangerRole: RoleName | null;
   private _hasVoice: boolean;
-  private _initiator: User;
   private _soundManager: SoundManager;
   private _phase: Phase;
 
@@ -47,7 +46,8 @@ export class Game {
     textChannel: TextChannel,
     voiceChannel: VoiceChannel,
     chosenRoles: RoleName[],
-    initiator: User
+    silentNight: boolean,
+    silent: boolean
   ) {
     if (players.length < MINIMUM_PLAYERS || players.length > MAXIMUM_PLAYERS) {
       throw new Error('Invalid amount of players');
@@ -60,8 +60,11 @@ export class Game {
     this._started = false;
     this._startTime = null;
     this.newDoppelgangerRole = null;
-    this._initiator = initiator;
-    this._soundManager = new SoundManager(voiceChannel.guild.id);
+    this._soundManager = new SoundManager(
+      voiceChannel.guild.id,
+      silentNight,
+      silent
+    );
     this._phase = Phase.night;
 
     try {
@@ -70,12 +73,8 @@ export class Game {
       Log.info('Joining voice channel.');
     } catch (error) {
       this._hasVoice = false;
-      Log.info('Not joining voice, already in a voice channel.');
+      Log.info(error.message);
     }
-  }
-
-  public get initiator(): User {
-    return this._initiator;
   }
 
   public get startGameState(): GameState {

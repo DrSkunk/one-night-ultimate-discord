@@ -37,6 +37,7 @@ export class SoundManager {
       return;
     }
     this._connection = await this._voiceChannel.join();
+    this._connection.voice?.setSelfDeaf(true);
     this._dispatcher = this.play(Sound.nightloop);
   }
 

@@ -28,6 +28,7 @@ export class Doppelganger extends Role {
 You now also have the role ${chosenPlayerRole.name}.
 You go back to sleep.`
       );
+      game.newDoppelgangerRole = chosenPlayerRole.name;
       return;
     } else if (isInstantRole(chosenPlayerRole.name)) {
       await player.send(

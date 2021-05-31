@@ -253,10 +253,10 @@ Reply to the DM you just received to vote for who to kill.`
     await winMessage.react('🥳');
 
     const stateText = `Results\n**Roles before the night**:
-${this._startGameState.toString()}
+${this._startGameState.print()}
 
 **Roles after the night**:
-${this.gameState.toString()}`;
+${this.gameState.print(this.newDoppelgangerRole)}`;
     await this.sendChannelMessage(stateText);
     Log.info('Game has ended');
     this.stopGame();

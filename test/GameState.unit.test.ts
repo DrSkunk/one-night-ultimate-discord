@@ -63,9 +63,9 @@ describe('GameState', function () {
 
     gameState.tableRoles = [new Seer(), new Villager(), new Troublemaker()];
 
-    expect(gameState.toString()).to.equal(`Player roles:
+    expect(gameState.print(RoleName.seer)).to.equal(`Player roles:
 
-doppelganger: 11
+doppelganger as seer: 11
 werewolf: 22, 33
 mason: 44, 55
 

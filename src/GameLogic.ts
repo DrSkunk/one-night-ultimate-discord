@@ -143,7 +143,6 @@ export async function playAllTurns(game: Game): Promise<void> {
       if (
         game.newDoppelgangerRole === roleName &&
         isMimicRole(roleName) &&
-        startGameState.playerRoles.doppelganger &&
         startGameState.playerRoles.doppelganger.size > 0
       ) {
         const doppelGangers = startGameState.playerRoles.doppelganger.map(

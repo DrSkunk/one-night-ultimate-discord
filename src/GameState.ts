@@ -31,13 +31,17 @@ export class GameState {
     this.tableRoles = tableRoles;
   }
 
-  public toString(): string {
+  public print(newDoppelgangerRole?: RoleName | null): string {
     let playerRoles = '';
     for (const roleName of Object.keys(this.playerRoles) as RoleName[]) {
       const players = this.playerRoles[roleName];
       if (players.size) {
+        let newDoppelgangerRolePrint = '';
+        if (roleName === RoleName.doppelganger && newDoppelgangerRole) {
+          newDoppelgangerRolePrint = ` as ${newDoppelgangerRole}`;
+        }
         const playerTags = players.map(({ name: tag }) => tag).join(', ');
-        playerRoles += `\n${roleName}: ${playerTags}`;
+        playerRoles += `\n${roleName}${newDoppelgangerRolePrint}: ${playerTags}`;
       }
     }
     const tableRoles = this.tableRoles.map((role) => role.name).join(', ');

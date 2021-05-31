@@ -1,11 +1,11 @@
-import { Message, TextChannel } from 'discord.js';
+import { GuildMember, Message, TextChannel } from 'discord.js';
 import {
   CARDS_ON_TABLE,
   MAXIMUM_PLAYERS,
   MAX_ROLES_COUNT,
   MINIMUM_PLAYERS,
 } from '../Constants';
-import { ChooseRoles } from '../ConversationHelper';
+import { ChooseRoles, getPlayerList } from '../ConversationHelper';
 import { getDiscordInstance } from '../DiscordClient';
 import { RoleName } from '../enums/RoleName';
 import { getGamesManagerInstance } from '../GamesManager';
@@ -51,7 +51,22 @@ async function execute(msg: Message, args: string[]): Promise<void> {
     textChannel.send(`Empty voice channel`);
     return;
   }
-  const players = members.filter((m) => !m.user.bot).array();
+  const potentialPlayers = members.filter((m) => !m.user.bot).array();
+  let players: GuildMember[];
+  try {
+    players = (await getPlayerList(textChannel, potentialPlayers)).map(
+      ({ id }) => {
+        const member = members.get(id);
+        if (!member) {
+          throw new Error('A playing player left the voice channel.');
+        }
+        return member;
+      }
+    );
+  } catch (error) {
+    textChannel.send(error.message);
+    return;
+  }
 
   const author = msg.author;
   const amountToPick =

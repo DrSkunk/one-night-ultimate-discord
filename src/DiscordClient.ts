@@ -106,6 +106,9 @@ export function initDiscord(token: string): void {
   instance = new DiscordClient(token);
 }
 
-export function getDiscordInstance(): DiscordClient | null {
+export function getDiscordInstance(): DiscordClient {
+  if (!instance) {
+    throw new Error('Discord client not started.');
+  }
   return instance;
 }

@@ -6,7 +6,6 @@ import {
   MINIMUM_PLAYERS,
 } from '../Constants';
 import { ChooseRoles, getPlayerList } from '../ConversationHelper';
-import { getDiscordInstance } from '../DiscordClient';
 import { RoleName } from '../enums/RoleName';
 import { getGamesManagerInstance } from '../GamesManager';
 import { Log } from '../Log';
@@ -27,10 +26,6 @@ const command: Command = {
 };
 
 async function execute(msg: Message, args: string[]): Promise<void> {
-  const client = getDiscordInstance();
-  if (!client) {
-    throw new Error('Discord did not initialize');
-  }
   const textChannel = msg.channel as TextChannel;
   const gamesManager = getGamesManagerInstance();
 
@@ -54,7 +49,9 @@ async function execute(msg: Message, args: string[]): Promise<void> {
   const potentialPlayers = members.filter((m) => !m.user.bot).array();
   let players: GuildMember[];
   try {
-    players = (await getPlayerList(textChannel, potentialPlayers)).map(
+    const playerTags = potentialPlayers.map((p) => `<@${p.id}>`).join(', ');
+    const text = `${playerTags}\nClick on ✅ to join the game.`;
+    players = (await getPlayerList(textChannel, potentialPlayers, text)).map(
       ({ id }) => {
         const member = members.get(id);
         if (!member) {

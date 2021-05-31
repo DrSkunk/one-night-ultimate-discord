@@ -26,6 +26,7 @@ import {
   shuffle,
 } from './GameLogic';
 import { SoundManager } from './SoundManager';
+import { Phase } from './enums/Phase';
 
 export class Game {
   public readonly players: Player[];
@@ -39,6 +40,7 @@ export class Game {
   private _hasVoice: boolean;
   private _initiator: User;
   private _soundManager: SoundManager;
+  private _phase: Phase;
 
   constructor(
     players: GuildMember[],
@@ -60,6 +62,7 @@ export class Game {
     this.newDoppelgangerRole = null;
     this._initiator = initiator;
     this._soundManager = new SoundManager(voiceChannel.guild.id);
+    this._phase = Phase.night;
 
     try {
       this._soundManager.voiceChannel = voiceChannel;
@@ -98,6 +101,10 @@ export class Game {
 
   public get tagPlayersText(): string {
     return this.players.map(({ tag }) => tag).join(', ');
+  }
+
+  public get phase(): Phase {
+    return this._phase;
   }
 
   public async start(): Promise<void> {
@@ -158,6 +165,7 @@ Please check your privacy settings.`
         p.send('You wake up! Go to the discussion text channel to continue.')
       )
     );
+    this._phase = Phase.discussion;
     Log.info('Night over');
 
     if (this._hasVoice) {
@@ -181,6 +189,9 @@ Please check your privacy settings.`
       setTimeout(resolve, ROUND_TIME_MILLISECONDS - NIGHT_ALMOST_OVER_REMINDER)
     );
 
+    if (this.phase === Phase.ending) {
+      return;
+    }
     await this.sendChannelMessage(
       `${this.tagPlayersText} ${
         NIGHT_ALMOST_OVER_REMINDER / 1000
@@ -198,7 +209,11 @@ Please check your privacy settings.`
     return this._textChannel.send(text);
   }
 
-  private async endGame() {
+  public async endGame(): Promise<void> {
+    if (this._phase === Phase.ending) {
+      return;
+    }
+    this._phase = Phase.ending;
     if (this._hasVoice) {
       this._soundManager.playGong();
     }

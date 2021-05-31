@@ -1,5 +1,4 @@
 import { Message, MessageEmbed } from 'discord.js';
-import { getDiscordInstance } from '../DiscordClient';
 import { Command } from '../types/Command';
 import packageJson from '../../package.json';
 
@@ -12,11 +11,6 @@ const command: Command = {
 };
 
 async function execute(msg: Message): Promise<void> {
-  const client = getDiscordInstance();
-  if (!client) {
-    throw new Error('Discord did not initialize');
-  }
-
   const embed = new MessageEmbed();
 
   embed.setTitle('One night ultimate Discord');

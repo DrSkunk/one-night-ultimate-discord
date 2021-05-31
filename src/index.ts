@@ -18,7 +18,4 @@ if (missingConfigKeys.length !== 0) {
 
 initDiscord(config.DiscordToken);
 const discordClient = getDiscordInstance();
-if (!discordClient) {
-  throw new Error('Discord did not initialize');
-}
 discordClient.start();

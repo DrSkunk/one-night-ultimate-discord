@@ -20,10 +20,6 @@ export class SoundManager {
 
   set voiceChannel(voiceChannel: VoiceChannel) {
     const client = getDiscordInstance();
-    if (!client) {
-      throw new Error('No Discord Client');
-    }
-
     if (client.isUsingVoice(this._guildId, voiceChannel)) {
       throw new Error('Already connected to a voice channel of this guild.');
     }

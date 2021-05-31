@@ -290,16 +290,18 @@ export async function ChoosePlayerOrTable(
 
 export async function getPlayerList(
   textChannel: TextChannel,
-  potentialPlayers: GuildMember[]
+  potentialPlayers: GuildMember[],
+  text: string
 ): Promise<User[]> {
   const reactions: string[] = ['✅'];
-  const filter = (reaction: MessageReaction) => {
-    return reactions.includes(reaction.emoji.name);
+  const filter = (reaction: MessageReaction, user: User) => {
+    return (
+      reactions.includes(reaction.emoji.name) &&
+      !!potentialPlayers.find(({ id }) => id === user.id)
+    );
   };
-  const playerTags = potentialPlayers.map((p) => `<@${p.id}>`).join(', ');
-  const message = await textChannel.send(
-    `${playerTags}\nClick on ✅ to join the game.`
-  );
+
+  const message = await textChannel.send(text);
 
   for (const reaction of reactions) {
     await message.react(reaction);

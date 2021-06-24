@@ -10,6 +10,6 @@ const command: Command = {
 };
 
 async function execute(msg: Message): Promise<void> {
-  msg.reply(`Pong! ${Date.now() - msg.createdTimestamp}`);
+  msg.reply(`Pong! \`${Date.now() - msg.createdTimestamp}ms\``);
 }
 export = command;

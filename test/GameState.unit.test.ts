@@ -1,12 +1,5 @@
-import { expect } from 'chai';
-import {
-  Client,
-  SnowflakeUtil,
-  GuildMember,
-  Guild,
-  User,
-  Collection,
-} from 'discord.js';
+import { describe, expect, it } from 'bun:test';
+import { Collection } from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { GameState } from '../src/GameState';
 import { Player } from '../src/Player';
@@ -17,19 +10,9 @@ import { Troublemaker } from '../src/roles/Troublemaker';
 import { Villager } from '../src/roles/Villager';
 import { Werewolf } from '../src/roles/Werewolf';
 
-const client = new Client();
-const guild = new Guild(client, {
-  id: SnowflakeUtil.generate(),
-});
-
-function newPlayer(id = SnowflakeUtil.generate()) {
-  const user = new User(client, { id });
-  const gm = new GuildMember(
-    client,
-    { user, displayName: id, nick: id },
-    guild
-  );
-  return new Player(gm);
+let nextId = 100000000000000000n;
+function newPlayer(id = String(nextId++)) {
+  return new Player(id, id);
 }
 
 function toPlayerCollection(players: Player[]): Collection<string, Player> {
@@ -41,7 +24,7 @@ function toPlayerCollection(players: Player[]): Collection<string, Player> {
 }
 
 function checkRole(gameState: GameState, role: RoleName, players: Player[]) {
-  expect(gameState.playerRoles[role]).to.be.eql(toPlayerCollection(players));
+  expect(gameState.playerRoles[role]).toEqual(toPlayerCollection(players));
 }
 
 describe('GameState', function () {
@@ -63,7 +46,7 @@ describe('GameState', function () {
 
     gameState.tableRoles = [new Seer(), new Villager(), new Troublemaker()];
 
-    expect(gameState.print(RoleName.seer)).to.equal(`Player roles:
+    expect(gameState.print(RoleName.seer)).toBe(`Player roles:
 
 doppelganger as seer: 11
 werewolf: 22, 33
@@ -80,13 +63,13 @@ Table roles: seer, villager, troublemaker`);
         player1,
         player2,
       ]);
-      expect(gameState.getRoleName(player1)).to.be.eq(RoleName.doppelganger);
-      expect(gameState.getRoleName(player2)).to.be.eq(RoleName.doppelganger);
+      expect(gameState.getRoleName(player1)).toBe(RoleName.doppelganger);
+      expect(gameState.getRoleName(player2)).toBe(RoleName.doppelganger);
     });
     it('It should throw an error if the player does not have a role', function () {
       const gameState = new GameState();
       const player = newPlayer();
-      expect(() => gameState.getRoleName(player)).to.throw(
+      expect(() => gameState.getRoleName(player)).toThrow(
         'Player does not have a role'
       );
     });
@@ -96,18 +79,12 @@ Table roles: seer, villager, troublemaker`);
     it('it should shallow copy the gamestate', function () {
       const gameState = new GameState();
       const clonedGameState = gameState.copy();
-      expect(clonedGameState.playerRoles).to.have.property(
-        RoleName.doppelganger
-      );
+      expect(clonedGameState.playerRoles).toHaveProperty(RoleName.doppelganger);
 
       const players = Array.from({ length: 2 }, () => newPlayer());
       gameState.playerRoles.doppelganger = toPlayerCollection(players);
-      expect(gameState.playerRoles)
-        .to.have.property(RoleName.doppelganger)
-        .to.have.length(2);
-      expect(clonedGameState.playerRoles)
-        .to.have.property(RoleName.doppelganger)
-        .to.have.length(0);
+      expect(gameState.playerRoles[RoleName.doppelganger].size).toBe(2);
+      expect(clonedGameState.playerRoles[RoleName.doppelganger].size).toBe(0);
     });
   });
 
@@ -127,14 +104,14 @@ Table roles: seer, villager, troublemaker`);
         new Villager(),
       ];
 
-      expect(gameState.playerRoles.drunk).to.have.length(1);
-      expect(gameState.playerRoles.doppelganger).to.have.length(0);
+      expect(gameState.playerRoles.drunk.size).toBe(1);
+      expect(gameState.playerRoles.doppelganger.size).toBe(0);
 
       gameState.switchTableCard(players[0], 0);
-      expect(gameState.playerRoles.drunk).to.have.length(0);
-      expect(gameState.playerRoles.doppelganger).to.have.length(1);
+      expect(gameState.playerRoles.drunk.size).toBe(0);
+      expect(gameState.playerRoles.doppelganger.size).toBe(1);
 
-      expect(gameState.tableRoles).to.be.eql([
+      expect(gameState.tableRoles).toEqual([
         new Drunk(),
         new Villager(),
         new Villager(),
@@ -152,13 +129,13 @@ Table roles: seer, villager, troublemaker`);
       gameState.playerRoles.robber = toPlayerCollection([players[2]]);
       gameState.tableRoles = [new Seer(), new Werewolf(), new Werewolf()];
 
-      expect(gameState.playerRoles.drunk).to.have.length(2);
-      expect(gameState.playerRoles.robber).to.have.length(1);
+      expect(gameState.playerRoles.drunk.size).toBe(2);
+      expect(gameState.playerRoles.robber.size).toBe(1);
 
       gameState.switchTableCard(players[1], 1);
       checkRole(gameState, RoleName.drunk, [players[0]]);
-      expect(gameState.playerRoles.werewolf).to.have.length(1);
-      expect(gameState.tableRoles).to.be.eql([
+      expect(gameState.playerRoles.werewolf.size).toBe(1);
+      expect(gameState.tableRoles).toEqual([
         new Seer(),
         new Drunk(),
         new Werewolf(),

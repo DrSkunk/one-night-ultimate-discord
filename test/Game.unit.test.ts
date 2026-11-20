@@ -1,38 +1,25 @@
-import { expect } from 'chai';
-import {
-  Client,
-  Guild,
-  SnowflakeUtil,
-  TextChannel,
-  VoiceChannel,
-  GuildMember,
-  User,
-  Collection,
-} from 'discord.js';
+import { describe, expect, it } from 'bun:test';
+import { Collection, type GuildTextBasedChannel } from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { Game } from '../src/Game';
 import { Player } from '../src/Player';
 
-const client = new Client();
-const guild = new Guild(client, {
-  id: SnowflakeUtil.generate(),
-});
-const textChannel = new TextChannel(guild, { id: SnowflakeUtil.generate() });
-const voiceChannel = new VoiceChannel(guild, { id: SnowflakeUtil.generate() });
+const textChannel = {
+  id: '1',
+  name: 'test',
+  send: async () => ({}),
+} as unknown as GuildTextBasedChannel;
 
-function newPlayer() {
-  const user = new User(client, { id: SnowflakeUtil.generate() });
-  const gm = new GuildMember(client, { user }, guild);
-  return new Player(gm);
+let nextId = 100000000000000000n;
+function newPlayer(id = String(nextId++)) {
+  return new Player(id, id);
 }
 
 function newGame(size: number, players: Player[] = []): Game {
-  let users: GuildMember[];
-  if (players.length === 0) {
-    users = Array.from({ length: size }, () => newPlayer().user);
-  } else {
-    users = players.map((p) => p.user);
-  }
+  const gamePlayers =
+    players.length === 0
+      ? Array.from({ length: size }, () => newPlayer())
+      : players;
   const roles = [
     RoleName.werewolf,
     RoleName.werewolf,
@@ -47,14 +34,14 @@ function newGame(size: number, players: Player[] = []): Game {
     RoleName.villager,
   ].slice(0, size);
 
-  return new Game(
-    users.slice(0, size),
+  return new Game({
+    players: gamePlayers.slice(0, size),
     textChannel,
-    voiceChannel,
-    roles,
-    false,
-    false
-  );
+    voiceChannel: null,
+    chosenRoles: roles,
+    silentNight: false,
+    silent: false,
+  });
 }
 
 function toPlayerCollection(players: Player[]): Collection<string, Player> {
@@ -70,23 +57,23 @@ describe('Game', function () {
     it("Don't start with invalid amount of players", function () {
       expect(() => {
         newGame(2);
-      }).to.throw('Invalid amount of players');
+      }).toThrow('Invalid amount of players');
 
       expect(() => {
         newGame(3);
-      }).to.not.throw('Invalid amount of players');
+      }).not.toThrow('Invalid amount of players');
 
       expect(() => {
         newGame(6);
-      }).to.not.throw('Invalid amount of players');
+      }).not.toThrow('Invalid amount of players');
 
       expect(() => {
         newGame(10);
-      }).to.not.throw('Invalid amount of players');
+      }).not.toThrow('Invalid amount of players');
 
       expect(() => {
         newGame(11);
-      }).to.throw('Invalid amount of players');
+      }).toThrow('Invalid amount of players');
     });
 
     it('No invalid role distribution', async function () {
@@ -96,9 +83,11 @@ describe('Game', function () {
           await game.start();
           startedGame = true;
         } catch (error) {
-          expect(error.message).to.contain('Invalid role distribution');
+          expect((error as Error).message).toContain(
+            'Invalid role distribution'
+          );
         }
-        expect(startedGame).to.be.false;
+        expect(startedGame).toBe(false);
       }
       const players = Array.from({ length: 3 }, () => newPlayer());
       const playersSet = new Collection();
@@ -136,22 +125,14 @@ describe('Game', function () {
         players[0],
       ]);
       game.gameState.playerRoles[roleName] = toPlayerCollection([players[1]]);
-      expect(game.gameState.playerRoles)
-        .to.have.property(RoleName.doppelganger)
-        .to.have.length(1);
-      expect(game.gameState.playerRoles)
-        .to.have.property(roleName)
-        .to.have.length(1);
+      expect(game.gameState.playerRoles[RoleName.doppelganger].size).toBe(1);
+      expect(game.gameState.playerRoles[roleName].size).toBe(1);
 
       game.gameState.moveDoppelGanger(roleName);
-      expect(game.gameState.playerRoles)
-        .to.have.property(RoleName.doppelganger)
-        .to.have.length(0);
-      expect(game.gameState.playerRoles)
-        .to.have.property(roleName)
-        .to.have.length(2);
+      expect(game.gameState.playerRoles[RoleName.doppelganger].size).toBe(0);
+      expect(game.gameState.playerRoles[roleName].size).toBe(2);
 
-      expect(game.gameState.getRoleName(players[1])).to.be.eq(roleName);
+      expect(game.gameState.getRoleName(players[1])).toBe(roleName);
     }
 
     it('Doppelganger takes on werewolf executes it later', function () {

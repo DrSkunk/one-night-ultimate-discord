@@ -1,31 +1,14 @@
-import { expect } from 'chai';
-import {
-  Client,
-  SnowflakeUtil,
-  GuildMember,
-  Guild,
-  User,
-  Collection,
-} from 'discord.js';
+import { describe, expect, it } from 'bun:test';
+import { Collection } from 'discord.js';
 import { RoleName } from '../src/enums/RoleName';
 import { Team } from '../src/enums/Team';
-import { getWinner } from '../src/GameLogic';
+import { getWinner, shuffle } from '../src/GameLogic';
 import { GameState } from '../src/GameState';
 import { Player } from '../src/Player';
 
-const client = new Client();
-const guild = new Guild(client, {
-  id: SnowflakeUtil.generate(),
-});
-
-function newPlayer(id = SnowflakeUtil.generate()) {
-  const user = new User(client, { id });
-  const gm = new GuildMember(
-    client,
-    { user, displayName: id, nick: id },
-    guild
-  );
-  return new Player(gm);
+let nextId = 100000000000000000n;
+function newPlayer(id = String(nextId++)) {
+  return new Player(id, id);
 }
 
 function toPlayerCollection(players: Player[]): Collection<string, Player> {
@@ -60,7 +43,7 @@ describe('GameLogic', function () {
         { chosenBy: players[5], target: players[0] },
       ];
       const winState = getWinner(chosenPlayers, gameState);
-      expect(winState.playersWhoDie).to.have.length(0);
+      expect(winState.playersWhoDie).toHaveLength(0);
     });
 
     it('Villagers win when only a werewolf dies', function () {
@@ -74,9 +57,9 @@ describe('GameLogic', function () {
       ];
 
       const winState = getWinner(chosenPlayers, gameState);
-      expect(winState.playersWhoDie).to.include(players[2]);
-      expect(winState.playersWhoDie).to.have.length(1);
-      expect(winState.winner).to.be.eq(Team.villagers);
+      expect(winState.playersWhoDie).toContain(players[2]);
+      expect(winState.playersWhoDie).toHaveLength(1);
+      expect(winState.winner).toBe(Team.villagers);
     });
 
     it('Villagers win when a werewolf dies', function () {
@@ -90,10 +73,10 @@ describe('GameLogic', function () {
       ];
 
       const winState = getWinner(chosenPlayers, gameState);
-      expect(winState.playersWhoDie).to.include(players[0]);
-      expect(winState.playersWhoDie).to.include(players[2]);
-      expect(winState.playersWhoDie).to.have.length(2);
-      expect(winState.winner).to.be.eq(Team.villagers);
+      expect(winState.playersWhoDie).toContain(players[0]);
+      expect(winState.playersWhoDie).toContain(players[2]);
+      expect(winState.playersWhoDie).toHaveLength(2);
+      expect(winState.winner).toBe(Team.villagers);
     });
 
     it('Villagers win when a werewolf dies by the hunter', function () {
@@ -107,14 +90,14 @@ describe('GameLogic', function () {
         { chosenBy: players[5], target: players[1] },
       ];
 
-      expect(gameState.getRoleName(players[5])).to.be.eq(RoleName.hunter);
+      expect(gameState.getRoleName(players[5])).toBe(RoleName.hunter);
 
       const winState = getWinner(chosenPlayers, gameState);
-      expect(winState.playersWhoDie).to.include(players[5]);
-      expect(winState.playersWhoDie).to.include(players[1]);
-      expect(winState.playersWhoDie).to.have.length(2);
+      expect(winState.playersWhoDie).toContain(players[5]);
+      expect(winState.playersWhoDie).toContain(players[1]);
+      expect(winState.playersWhoDie).toHaveLength(2);
 
-      expect(winState.winner).to.be.eq(Team.villagers);
+      expect(winState.winner).toBe(Team.villagers);
     });
 
     it('Tanner wins when he dies', function () {
@@ -129,15 +112,37 @@ describe('GameLogic', function () {
         { chosenBy: players[5], target: players[4] },
       ];
 
-      expect(gameState.getRoleName(players[4])).to.be.eq(RoleName.tanner);
-      expect(gameState.getRoleName(players[5])).to.be.eq(RoleName.hunter);
+      expect(gameState.getRoleName(players[4])).toBe(RoleName.tanner);
+      expect(gameState.getRoleName(players[5])).toBe(RoleName.hunter);
 
       const winState = getWinner(chosenPlayers, gameState);
-      expect(winState.playersWhoDie).to.include(players[5]);
-      expect(winState.playersWhoDie).to.include(players[4]);
-      expect(winState.playersWhoDie).to.have.length(2);
+      expect(winState.playersWhoDie).toContain(players[5]);
+      expect(winState.playersWhoDie).toContain(players[4]);
+      expect(winState.playersWhoDie).toHaveLength(2);
 
-      expect(winState.winner).to.be.eq(Team.tanner);
+      expect(winState.winner).toBe(Team.tanner);
+    });
+
+    it('A dying hunter who did not vote takes nobody with them', function () {
+      const chosenPlayers = [
+        { chosenBy: players[0], target: players[5] },
+        { chosenBy: players[1], target: players[5] },
+      ];
+
+      const winState = getWinner(chosenPlayers, gameState);
+      expect(winState.playersWhoDie).toEqual([players[5]]);
+      expect(winState.dyingHunters).toEqual([players[5]]);
+      expect(winState.hunterKillList).toHaveLength(0);
+      expect(winState.winner).toBe(Team.werewolves);
+    });
+  });
+
+  describe('shuffle', function () {
+    it('returns a permutation without mutating the input', function () {
+      const input = Array.from({ length: 20 }, (_, i) => i);
+      const result = shuffle(input);
+      expect(input).toEqual(Array.from({ length: 20 }, (_, i) => i));
+      expect([...result].sort((a, b) => a - b)).toEqual(input);
     });
   });
 });

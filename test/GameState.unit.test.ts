@@ -166,5 +166,31 @@ Table roles: seer, villager, troublemaker`);
       checkRole(gameState, RoleName.seer, [players[0]]);
       checkRole(gameState, RoleName.troublemaker, [players[3]]);
     });
+
+    it('keeps both players when switching two players with the same role', function () {
+      const players = Array.from({ length: 2 }, () => newPlayer());
+      const gameState = new GameState();
+      gameState.playerRoles.werewolf = toPlayerCollection(players);
+
+      gameState.switchPlayerRoles(players[0], players[1]);
+
+      checkRole(gameState, RoleName.werewolf, players);
+    });
+
+    it('moves the current card of a drunk that was robbed earlier', function () {
+      const [drunk, robber] = Array.from({ length: 2 }, () => newPlayer());
+      const gameState = new GameState();
+      gameState.playerRoles.drunk = toPlayerCollection([drunk]);
+      gameState.playerRoles.robber = toPlayerCollection([robber]);
+      gameState.tableRoles = [new Seer(), new Villager(), new Werewolf()];
+
+      gameState.switchPlayerRoles(robber, drunk);
+      gameState.switchTableCard(drunk, 0);
+
+      checkRole(gameState, RoleName.seer, [drunk]);
+      checkRole(gameState, RoleName.robber, []);
+      checkRole(gameState, RoleName.drunk, [robber]);
+      expect(gameState.tableRoles[0].name).toBe(RoleName.robber);
+    });
   });
 });

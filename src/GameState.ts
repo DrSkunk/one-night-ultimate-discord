@@ -74,24 +74,20 @@ export class GameState {
   }
 
   public switchTableCard(player: Player, tableCardIndex: number): void {
+    // Use the player's current card: a Drunk may have been robbed or swapped
+    // earlier in the night, and a Doppelganger-Drunk still holds that card.
+    const currentRoleName = this.getRoleName(player);
     const newRole = this.tableRoles[tableCardIndex].name;
-    const newTableCard = this.getRole(player);
-    // move Drunk to table
-    this.tableRoles[tableCardIndex] = newTableCard;
-    // Remove player from drunk rol
-    this.playerRoles.drunk = this.playerRoles.drunk.filter(
-      (p) => p.id !== player.id
-    );
-    // Add player to new role
+    this.tableRoles[tableCardIndex] = getRoleByName(currentRoleName);
+    this.playerRoles[currentRoleName].delete(player.id);
     this.playerRoles[newRole].set(player.id, player);
   }
 
   public switchPlayerRoles(player1: Player, player2: Player): void {
     const roleName1 = this.getRoleName(player1);
     const roleName2 = this.getRoleName(player2);
-
-    if (!roleName1 || !roleName2) {
-      throw new Error('invalid player switch');
+    if (roleName1 === roleName2) {
+      return;
     }
 
     this.playerRoles[roleName1].delete(player1.id);

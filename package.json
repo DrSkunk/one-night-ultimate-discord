@@ -12,8 +12,8 @@
     "test": "bun test",
     "test:discord": "bun scripts/test-discord.ts",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "oxlint && prettier --check \"**/*.{js,ts,tsx}\"",
+    "lint:fix": "oxlint --fix && prettier --write \"**/*.{js,ts,tsx}\"",
     "format": "prettier --write .",
     "prepare": "husky || true"
   },
@@ -21,7 +21,7 @@
   "license": "ISC",
   "lint-staged": {
     "*.ts": [
-      "eslint --fix",
+      "oxlint --fix",
       "prettier --write"
     ],
     "*.{json,md,yml,yaml}": [
@@ -38,17 +38,12 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@eslint/js": "^10",
     "@types/bun": "^1.4.5",
-    "eslint": "^10",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.7",
-    "globals": "^17.14.0",
     "husky": "^9",
     "lint-staged": "^17.6.1",
+    "oxlint": "^1.94.0",
     "prettier": "^3",
-    "typescript": "~6.0.3",
-    "typescript-eslint": "^8.73.0"
+    "typescript": "~7.0.2"
   },
   "packageManager": "bun@1.4.5"
 }

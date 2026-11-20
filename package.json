@@ -1,6 +1,6 @@
 {
   "name": "one-night-ultimate-discord",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Play One Night Ultimate Werewolf together with friends on Discord",
   "type": "module",
   "private": true,

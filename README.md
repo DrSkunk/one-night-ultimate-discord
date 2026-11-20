@@ -77,6 +77,7 @@ In nano, save with **Ctrl+O**, press **Enter**, and exit with **Ctrl+X**. Then r
 
 ```sh
 chmod +x ./WereCord-macos-arm64
+xattr -d com.apple.quarantine ./WereCord-macos-arm64 2>/dev/null
 ./WereCord-macos-arm64 --check
 ./WereCord-macos-arm64 --register
 ./WereCord-macos-arm64

@@ -166,12 +166,20 @@ jobs:
             fi
             binary="$(basename "${binaries[0]}")"
             archive="${binary%.exe}.zip"
+            # Artifact transfer drops Unix permissions; restore them before zipping.
+            chmod 755 "$artifact/$binary"
             (
               cd "$artifact"
               zip -q "$GITHUB_WORKSPACE/release/$archive" "$binary" \
                 LICENSE README.md THIRD_PARTY_LICENSES.txt BUN_LICENSE.md config.example
             )
             unzip -tq "release/$archive"
+            if [[ "$binary" != *.exe ]]; then
+              zipinfo "release/$archive" "$binary" | grep -q '^-rwx' || {
+                echo "$binary is not executable in $archive." >&2
+                exit 1
+              }
+            fi
           done
           (cd release && sha256sum WereCord-*.zip > SHA256SUMS.txt)
       - name: Publish release

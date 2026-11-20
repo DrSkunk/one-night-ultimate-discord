@@ -73,6 +73,8 @@ cd ~/Downloads/WereCord
 nano .env
 ```
 
+If `cp` reports `Operation not permitted`, or the executable reports `An unknown error occurred (Unexpected)`, macOS is blocking your terminal from reading **Downloads**. Move the folder elsewhere in Finder, for example to your home folder, or allow access in **System Settings → Privacy & Security → Files and Folders**.
+
 In nano, save with **Ctrl+O**, press **Enter**, and exit with **Ctrl+X**. Then run:
 
 ```sh

@@ -42,7 +42,10 @@ export const skip: Command = {
     activeSkipVotes.add(interaction.channelId);
 
     try {
-      const agreed = new Set([interaction.user.id]);
+      const agreed = new Set([
+        interaction.user.id,
+        ...game.players.filter((p) => p.isVirtual).map(({ id }) => id),
+      ]);
       const content = () =>
         `<@${interaction.user.id}> wants to skip to the voting phase. Does everyone agree?\n${game.tagPlayersText}\nAgreed: ${agreed.size}/${game.players.length}`;
       const row =
@@ -92,10 +95,13 @@ export const skip: Command = {
         })().catch((error) => Log.error('Skip interaction failed', error));
       });
 
-      const reason = await new Promise<string>((resolve) =>
+      const reason = new Promise<string>((resolve) =>
         collector.once('end', (_collected, endReason) => resolve(endReason))
       );
-      if (reason === 'agreed' && game.phase === Phase.discussion) {
+      if (agreed.size === game.players.length) {
+        collector.stop('agreed');
+      }
+      if ((await reason) === 'agreed' && game.phase === Phase.discussion) {
         await interaction.editReply({
           content: 'Everyone agreed. Skipping to the voting phase!',
           components: [],

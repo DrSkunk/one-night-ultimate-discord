@@ -1,9 +1,12 @@
 import { REST, Routes } from 'discord.js';
-import { commands } from '../src/commands';
+import { commands, devCommands } from '../src/commands';
 import { getConfig } from '../src/Config';
 
 const { DISCORD_TOKEN, DISCORD_CLIENT_ID, DEV_GUILD_ID } = getConfig();
-const body = commands.map((command) => command.data.toJSON());
+// Dev-only commands (like /playtest) are never registered globally.
+const body = [...commands, ...(DEV_GUILD_ID ? devCommands : [])].map(
+  (command) => command.data.toJSON()
+);
 const rest = new REST().setToken(DISCORD_TOKEN);
 
 const route = DEV_GUILD_ID

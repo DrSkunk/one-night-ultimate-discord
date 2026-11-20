@@ -3,6 +3,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ComponentType,
   StringSelectMenuBuilder,
   type MessageActionRowComponentBuilder,
   type MessageComponentInteraction,
@@ -12,6 +13,7 @@ import { ChoosePlayerType } from './enums/ChoosePlayer';
 import { Log } from './Log';
 import type { Player } from './Player';
 import { UserError } from './UserError';
+import { VirtualPlayer } from './VirtualPlayer';
 
 const responseError = new UserError(
   'Waited too long for a response from one of the players. Aborting game.'
@@ -64,6 +66,31 @@ function selectRow(
   );
 }
 
+/** The values a player can answer with, derived from the rendered components. */
+function promptChoices(components: Row[]): {
+  choices: string[];
+  amount: number;
+} {
+  const json = components.flatMap((row) => row.toJSON().components);
+  const select = json.find(
+    (component) => component.type === ComponentType.StringSelect
+  );
+  if (select) {
+    return {
+      choices: select.options.map(({ value }) => value),
+      amount: select.min_values ?? 1,
+    };
+  }
+  return {
+    choices: json.flatMap((component) =>
+      component.type === ComponentType.Button && 'custom_id' in component
+        ? [customIdValue(component.custom_id)]
+        : []
+    ),
+    amount: 1,
+  };
+}
+
 /**
  * Send an ephemeral prompt to the player and wait for them to use one of its
  * components. Returns the selected values, or null on timeout.
@@ -74,6 +101,12 @@ async function ask(
   components: Row[],
   describe: (values: string[]) => string
 ): Promise<string[] | null> {
+  if (player instanceof VirtualPlayer) {
+    const { choices, amount } = promptChoices(components);
+    const values = await player.choose(choices, amount, content);
+    Log.info(`[virtual ${player.name}] ${content} -> ${describe(values)}`);
+    return values;
+  }
   const message = await player.send({ content, components });
   let interaction: MessageComponentInteraction;
   try {

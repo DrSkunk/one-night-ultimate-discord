@@ -33,6 +33,7 @@ import {
 } from '../RoleSelection';
 import type { Command } from '../types/Command';
 import { UserError, userMessage } from '../UserError';
+import type { VirtualPlayer } from '../VirtualPlayer';
 
 interface LobbySettings {
   quick: boolean;
@@ -63,11 +64,16 @@ export const start: Command = {
     .addBooleanOption((option) =>
       option.setName('silent').setDescription('Mute all sound effects.')
     ),
-  execute,
+  execute: (interaction) => openLobby(interaction),
 };
 
-async function execute(
-  interaction: ChatInputCommandInteraction<'cached'>
+/**
+ * Opens a lobby and runs the game. Virtual players are pre-seated and are
+ * exempt from the voice channel checks.
+ */
+export async function openLobby(
+  interaction: ChatInputCommandInteraction<'cached'>,
+  virtualPlayers: VirtualPlayer[] = []
 ): Promise<void> {
   const textChannel = interaction.channel;
   if (!textChannel) {
@@ -97,7 +103,12 @@ async function execute(
   };
 
   try {
-    const result = await runLobby(interaction, voiceChannel, settings);
+    const result = await runLobby(
+      interaction,
+      voiceChannel,
+      settings,
+      virtualPlayers
+    );
     if (!result) {
       return;
     }
@@ -152,10 +163,13 @@ function renderLobby(
 async function runLobby(
   interaction: ChatInputCommandInteraction<'cached'>,
   voiceChannel: VoiceBasedChannel,
-  settings: LobbySettings
+  settings: LobbySettings,
+  virtualPlayers: VirtualPlayer[]
 ): Promise<LobbyResult | null> {
   const host = new Player(interaction.user.id, interaction.member.displayName);
-  const players = new Map<string, Player>([[host.id, host]]);
+  const players = new Map<string, Player>(
+    [host, ...virtualPlayers].map((player) => [player.id, player])
+  );
   const render = () => renderLobby(host, players, voiceChannel, settings);
 
   const response = await interaction.reply({ ...render(), withResponse: true });
@@ -209,7 +223,8 @@ async function runLobby(
             );
           }
           const absent = [...players.values()].filter(
-            ({ id }) => !voiceChannel.members.has(id)
+            (player) =>
+              !player.isVirtual && !voiceChannel.members.has(player.id)
           );
           if (absent.length > 0) {
             return ephemeral(

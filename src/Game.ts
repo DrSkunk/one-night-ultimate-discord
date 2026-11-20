@@ -42,6 +42,7 @@ import type { Player } from './Player';
 import { SoundManager } from './SoundManager';
 import type { Time } from './types/Time';
 import { UserError } from './UserError';
+import { VirtualPlayer } from './VirtualPlayer';
 
 export interface GameOptions {
   players: Player[];
@@ -288,7 +289,9 @@ export class Game {
    * players can recover a dismissed message.
    */
   private async revealRoles(): Promise<Player[]> {
-    const revealed = new Set<string>();
+    const revealed = new Set(
+      this.players.filter((p) => p.isVirtual).map(({ id }) => id)
+    );
     const message = await this._textChannel.send({
       content: `${this.tagPlayersText}\n🌙 **Night falls.** Press the button to secretly see your role. Your night actions will appear right here, visible only to you.`,
       components: [
@@ -326,6 +329,10 @@ export class Game {
           })
           .catch((error) => Log.error('Failed to reveal role', error));
       });
+      if (revealed.size === this.players.length) {
+        clearTimeout(timeout);
+        resolve();
+      }
     });
 
     const missing = this.players.filter(({ id }) => !revealed.has(id));
@@ -395,13 +402,39 @@ export class Game {
         })
         .catch((error) => Log.error('Failed to handle vote', error));
     });
-    await new Promise<void>((resolve) =>
+    const ended = new Promise<void>((resolve) =>
       collector.once('end', () => resolve())
     );
+    await this.castVirtualVotes(votes);
+    if (votes.size === this.players.length) {
+      collector.stop('all-voted');
+    }
+    await ended;
     await message
       .edit({ content: '🗳️ Voting is closed.', components: [] })
       .catch(() => undefined);
     return votes;
+  }
+
+  private async castVirtualVotes(votes: Map<string, Player>): Promise<void> {
+    await Promise.all(
+      this.players.map(async (player) => {
+        if (!(player instanceof VirtualPlayer)) {
+          return;
+        }
+        const candidates = this.players.filter(({ id }) => id !== player.id);
+        const [targetId] = await player.choose(
+          candidates.map(({ id }) => id),
+          1,
+          'Choose a player to kill.'
+        );
+        const target = candidates.find(({ id }) => id === targetId);
+        if (target) {
+          votes.set(player.id, target);
+          Log.info(`[virtual ${player.name}] votes for ${target.name}`);
+        }
+      })
+    );
   }
 
   private async handleVote(

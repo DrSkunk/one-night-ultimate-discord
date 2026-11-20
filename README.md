@@ -91,6 +91,20 @@ local `.env` file, then run `bun run register` and `bun start`. Check that:
 - The bot joins voice, plays the night loop and rooster, and disconnects when
   the game ends or the voice channel empties.
 
+#### Playtesting alone
+
+Discord bots can't act as other users, so a solo test uses virtual players. In
+the `DEV_GUILD_ID` test server, join a voice channel and run
+`/playtest [bots]` (2 by default). It opens the normal lobby with `🤖 Bot N`
+players already seated. They skip the voice checks, reveal their roles
+instantly, pick random night actions after a short pause, agree to every
+`/skip` and vote randomly. Other people can still join. `/playtest` is only
+registered in the test server (never globally) and refuses to run anywhere else.
+Bot decisions are logged at `info` level, so they appear in the test report.
+
+`bun test` also simulates complete games offline with only virtual players for
+every player count, using random roles and choices.
+
 For a playtest report you can share for debugging, set `DISCORD_TOKEN`,
 `DISCORD_CLIENT_ID` and `DEV_GUILD_ID` in `.env`, then run:
 

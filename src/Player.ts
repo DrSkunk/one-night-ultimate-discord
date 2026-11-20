@@ -27,6 +27,11 @@ export class Player {
     this.name = name;
   }
 
+  /** True for computer-controlled playtest players, see VirtualPlayer. */
+  get isVirtual(): boolean {
+    return false;
+  }
+
   get tag(): string {
     return `<@${this.id}>`;
   }

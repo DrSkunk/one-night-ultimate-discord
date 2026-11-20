@@ -6,7 +6,7 @@ import { stripVTControlCharacters } from 'node:util';
 import { generateDependencyReport } from '@discordjs/voice';
 import { REST, Routes } from 'discord.js';
 import { z } from 'zod';
-import { commands } from '../src/commands';
+import { commands, devCommands } from '../src/commands';
 import { parseConfig } from '../src/Config';
 import packageJson from '../package.json' with { type: 'json' };
 
@@ -230,20 +230,21 @@ async function main(): Promise<void> {
     report('PASS: bot authentication and application ID match.');
     await rest.get(Routes.guild(config.DEV_GUILD_ID));
     report('PASS: the bot can access the test server.');
+    const testServerCommands = [...commands, ...devCommands];
     const route = Routes.applicationGuildCommands(
       config.DISCORD_CLIENT_ID,
       config.DEV_GUILD_ID
     );
     if (flags.includes('--register')) {
       await rest.put(route, {
-        body: commands.map((command) => command.data.toJSON()),
+        body: testServerCommands.map((command) => command.data.toJSON()),
       });
       report('PASS: commands registered to the test server only.');
     }
     const registered = z
       .array(z.object({ name: z.string() }))
       .parse(await rest.get(route));
-    const missing = commands
+    const missing = testServerCommands
       .filter(
         (command) => !registered.some(({ name }) => name === command.data.name)
       )
@@ -256,7 +257,10 @@ async function main(): Promise<void> {
     report('PASS: all expected test-server slash commands are registered.');
     report('\n=== Manual playtest ===');
     report(
-      'Play in Discord with at least three people in the same voice channel.'
+      'Play in Discord with at least three people in the same voice channel,'
+    );
+    report(
+      'or alone: join a voice channel and use /playtest bots:2 (bots answer randomly).'
     );
     report(
       'Test /start, host-only buttons, private roles/actions, /skip and voting.'

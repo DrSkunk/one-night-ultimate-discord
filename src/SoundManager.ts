@@ -1,4 +1,3 @@
-import { createReadStream } from 'node:fs';
 import {
   AudioPlayerStatus,
   createAudioPlayer,
@@ -13,7 +12,8 @@ import {
   type VoiceConnection,
 } from '@discordjs/voice';
 import type { VoiceBasedChannel } from 'discord.js';
-import { ASSETS_DIR, EMPTY_VOICE_CHECK_TIME } from './Constants';
+import { EMPTY_VOICE_CHECK_TIME } from './Constants';
+import { openSound } from './EmbeddedAssets';
 import { Sound } from './enums/Sound';
 import { Log } from './Log';
 
@@ -104,10 +104,9 @@ export class SoundManager {
     if (!this._player) {
       return;
     }
-    const resource = createAudioResource(
-      createReadStream(`${ASSETS_DIR}sound/${sound}.ogg`),
-      { inputType: StreamType.OggOpus }
-    );
+    const resource = createAudioResource(openSound(sound), {
+      inputType: StreamType.OggOpus,
+    });
     this._player.play(resource);
   }
 

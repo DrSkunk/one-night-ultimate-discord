@@ -8,6 +8,7 @@
     "start": "bun src/index.ts",
     "dev": "bun --watch src/index.ts",
     "register": "bun scripts/register-commands.ts",
+    "build:executable": "bun build --compile --external=ffmpeg-static --no-compile-autoload-dotenv --no-compile-autoload-bunfig src/index.ts --outfile dist/werecord",
     "test": "bun test",
     "test:discord": "bun scripts/test-discord.ts",
     "typecheck": "tsc --noEmit",

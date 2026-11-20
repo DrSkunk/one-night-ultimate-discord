@@ -1,19 +1,4 @@
-import { REST, Routes } from 'discord.js';
-import { commands, devCommands } from '../src/commands';
 import { getConfig } from '../src/Config';
+import { registerCommands } from '../src/RegisterCommands';
 
-const { DISCORD_TOKEN, DISCORD_CLIENT_ID, DEV_GUILD_ID } = getConfig();
-// Dev-only commands (like /playtest) are never registered globally.
-const body = [...commands, ...(DEV_GUILD_ID ? devCommands : [])].map(
-  (command) => command.data.toJSON()
-);
-const rest = new REST().setToken(DISCORD_TOKEN);
-
-const route = DEV_GUILD_ID
-  ? Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DEV_GUILD_ID)
-  : Routes.applicationCommands(DISCORD_CLIENT_ID);
-
-await rest.put(route, { body });
-console.info(
-  `Registered ${body.length} commands ${DEV_GUILD_ID ? `in guild ${DEV_GUILD_ID}` : 'globally'}.`
-);
+await registerCommands(getConfig());

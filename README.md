@@ -1,137 +1,147 @@
-![ONUW logo](assets/imgs/logo.png?raw=true 'ONUW')
+![One Night Ultimate Discord logo](assets/imgs/logo.png)
 
 # One Night Ultimate Discord
 
-[![Build and Test](https://github.com/DrSkunk/one-night-ultimate-discord/actions/workflows/build_test.yml/badge.svg)](https://github.com/DrSkunk/one-night-ultimate-discord/actions/workflows/build_test.yml)
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
-[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
-[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-f8bc45.svg)](https://github.com/prettier/prettier)
+Play [One Night Ultimate Werewolf](https://boardgamegeek.com/boardgame/147949/one-night-ultimate-werewolf) by [Bezier Games](https://beziergames.com/) with friends on Discord. The bot uses slash commands, buttons, and private responses visible only to you in your game channel. It runs on your own computer; no hosting, Bun, or Docker is needed to use a release.
 
-Discord bot written in TypeScript that lets a server play [One Night Ultimate Werewolf](https://boardgamegeek.com/boardgame/147949/one-night-ultimate-werewolf) by [Bezier Games](https://beziergames.com/).
+> **Discord application name:** The deployed application was renamed **One Night Ultimate WereCord** after Discord rejected interaction replies while its application name contained "Discord" (`USERNAME_INVALID_CONTAINS`). Choose a name without "Discord" for your own application. The repository and project name remain unchanged.
 
-The bot uses Discord [interactions](https://docs.discord.com/developers/interactions/overview): slash commands, buttons and select menus. Night actions happen through ephemeral messages that only you can see, in the game channel itself, so no DMs are needed.
+## 1. Create your Discord bot
 
-[Click here to invite the bot to your server.](https://discord.com/oauth2/authorize?client_id=843451299973693472&permissions=3197952&integration_type=0&scope=bot+applications.commands)
+1. In the [Discord Developer Portal](https://discord.com/developers/applications), create an application and give it a name such as **One Night Ultimate WereCord**.
+2. On **General Information**, copy the **Application ID**. On the **Bot** page, create or reset the bot token and copy it. **Keep the token secret**; anyone with it can control your bot.
+3. Replace `YOUR_APPLICATION_ID` in the address below with your application ID, open it in a browser, and invite the bot to your server:
 
-## Commands
+   ```text
+   https://discord.com/oauth2/authorize?client_id=YOUR_APPLICATION_ID&permissions=3197952&scope=bot%20applications.commands
+   ```
 
-| Command                                  | Description                                                         |
-| ---------------------------------------- | ------------------------------------------------------------------- |
-| `/start [quick] [silent_night] [silent]` | Open a lobby in this channel. Players join from your voice channel. |
-| `/skip`                                  | Ask everyone to agree to skip the discussion and vote now.          |
-| `/time`                                  | Show how much discussion time is left.                              |
-| `/rules`                                 | Link to the official rules.                                         |
-| `/help`, `/ping`, `/version`             | Info about the bot.                                                 |
+The invite requests View Channel, Send Messages, Embed Links, Attach Files, Connect, and Speak. Make sure channel overrides allow those permissions. No privileged intents are required.
 
-## How a game works
+## 2. Download and configure
 
-1. The host joins a voice channel and runs `/start` in a text channel. Players in the same voice channel press **Join**, then the host presses **Start**.
-2. The host picks the roles from a select menu (only the host can see it). With `quick: true`, the roles of the previous game in that channel are reused.
-3. Everyone presses **Reveal my role** to privately see their card. This button keeps working all night, so it also brings back a dismissed message.
-4. During the night, the bot sends each player who has to act a private prompt with buttons or select menus.
-5. When the discussion time ends (or everyone agrees to `/skip`), each player votes privately and the bot posts the results.
+Download the matching ZIP from [GitHub Releases](https://github.com/DrSkunk/one-night-ultimate-discord/releases) (version 1.0.0 or newer) and extract it to its own folder, for example `Downloads/WereCord`. Each ZIP contains the executable, configuration example, and license notices.
 
-## Installation
+| Your computer        | Download                   | Executable                 |
+| -------------------- | -------------------------- | -------------------------- |
+| Windows 10/11, x64   | `WereCord-windows-x64.zip` | `WereCord-windows-x64.exe` |
+| macOS, Apple Silicon | `WereCord-macos-arm64.zip` | `WereCord-macos-arm64`     |
+| macOS, Intel         | `WereCord-macos-x64.zip`   | `WereCord-macos-x64`       |
+| Linux, x64           | `WereCord-linux-x64.zip`   | `WereCord-linux-x64`       |
+| Linux, ARM64         | `WereCord-linux-arm64.zip` | `WereCord-linux-arm64`     |
 
-You need [Bun](https://bun.sh) 1.4 or newer.
+The Linux builds require glibc and are not for Alpine Linux. The executables are unsigned; Windows SmartScreen or macOS may ask you to confirm that you trust the download. Download only from the release page and compare the ZIP's SHA-256 hash with `SHA256SUMS.txt` before allowing it. Use `Get-FileHash <file> -Algorithm SHA256` on Windows, `shasum -a 256 <file>` on macOS, or `sha256sum <file>` on Linux.
 
-```sh
-bun install
-cp .env.example .env   # then fill in the values
-bun run register       # register the slash commands (once, and after changing commands)
-bun start
+In that folder, copy `config.example` to a plain-text file named **`.env`** (not `.env.txt`) and fill in:
+
+```text
+DISCORD_TOKEN=YOUR_BOT_TOKEN
+DISCORD_CLIENT_ID=YOUR_APPLICATION_ID
 ```
 
-### Configuration
+Replace both values with those from the Developer Portal. Do not share or commit this file. To register commands only in a test server, also add `DEV_GUILD_ID=YOUR_SERVER_ID`; otherwise they are registered globally.
 
-The environment variables are checked at startup and the bot will not start if any are invalid.
+## 3. Register commands and run
 
-| Variable            | Required | Description                                                                                          |
-| ------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
-| `DISCORD_TOKEN`     | yes      | Bot token (Developer Portal → your application → **Bot** → **Reset Token**). Never commit it.        |
-| `DISCORD_CLIENT_ID` | yes      | Application ID (**General Information** tab).                                                        |
-| `DEV_GUILD_ID`      | no       | If set, `bun run register` registers the commands to this server only, so changes show up instantly. |
-| `LOG_LEVEL`         | no       | `error`, `warn`, `info` (default) or `debug`.                                                        |
+Open a terminal **in the folder containing the executable and `.env`**. The executable reads `.env` from the current terminal folder, not necessarily its own location.
 
-The bot needs no privileged intents. It only uses the `Guilds` and `GuildVoiceStates` intents. Invite it with the `bot` and `applications.commands` scopes. In game channels it needs these permissions: View Channel, Send Messages, Embed Links, Attach Files, Connect and Speak.
+### Windows
 
-### Docker
+Open PowerShell:
 
-```sh
-docker build -t one-night-ultimate-discord .
-docker run --rm --env-file .env one-night-ultimate-discord
+```powershell
+cd "$HOME\Downloads\WereCord"
+if (-not (Test-Path .env)) { Copy-Item config.example .env }
+notepad .env
 ```
 
-The image runs as a non-root user. Images built from `main` and from releases are published to `ghcr.io/drskunk/one-night-ultimate-discord`.
+Save your configuration and close Notepad, then run:
 
-## Development
-
-```sh
-bun run dev        # start with file watching
-bun test           # unit tests
-bun run lint       # ESLint + Prettier
-bun run typecheck  # tsc --noEmit
-bun audit          # check dependencies for known vulnerabilities
+```powershell
+.\WereCord-windows-x64.exe --check
+.\WereCord-windows-x64.exe --register
+.\WereCord-windows-x64.exe
 ```
 
-### Discord smoke test
+### macOS
 
-Use a separate Discord application and test server; do not test with a production
-bot token. Add the test application's token, application ID, and server ID to a
-local `.env` file, then run `bun run register` and `bun start`. Check that:
+Open Terminal. For an Intel Mac, replace `arm64` with `x64` in the commands:
 
-- `/start` opens a lobby and rejects non-host attempts to start or cancel it.
-- Only members in the host's voice channel can join, and the host can select
-  roles.
-- Each player's role and night prompts are private, and only that player can
-  use their components.
-- The night actions, wake-up, `/skip`, voting, timeout and results complete
-  without stale buttons or failed interactions.
-- The bot joins voice, plays the night loop and rooster, and disconnects when
-  the game ends or the voice channel empties.
+```sh
+cd ~/Downloads/WereCord
+[ -e .env ] || cp config.example .env
+nano .env
+```
 
-#### Playtesting alone
+In nano, save with **Ctrl+O**, press **Enter**, and exit with **Ctrl+X**. Then run:
 
-Discord bots can't act as other users, so a solo test uses virtual players. In
-the `DEV_GUILD_ID` test server, join a voice channel and run
-`/playtest [bots]` (2 by default). It opens the normal lobby with `🤖 Bot N`
-players already seated. They skip the voice checks, reveal their roles
-instantly, pick random night actions after a short pause, agree to every
-`/skip` and vote randomly. Other people can still join. `/playtest` is only
-registered in the test server (never globally) and refuses to run anywhere else.
-Bot decisions are logged at `info` level, so they appear in the test report.
+```sh
+chmod +x ./WereCord-macos-arm64
+./WereCord-macos-arm64 --check
+./WereCord-macos-arm64 --register
+./WereCord-macos-arm64
+```
 
-`bun test` also simulates complete games offline with only virtual players for
-every player count, using random roles and choices.
+### Linux
 
-For a playtest report you can share for debugging, set `DISCORD_TOKEN`,
-`DISCORD_CLIENT_ID` and `DEV_GUILD_ID` in `.env`, then run:
+Open a terminal. For an ARM64 computer, replace `x64` with `arm64`:
+
+```sh
+cd ~/Downloads/WereCord
+[ -e .env ] || cp config.example .env
+nano .env
+```
+
+In nano, save with **Ctrl+O**, press **Enter**, and exit with **Ctrl+X**. Then run:
+
+```sh
+chmod +x ./WereCord-linux-x64
+./WereCord-linux-x64 --check
+./WereCord-linux-x64 --register
+./WereCord-linux-x64
+```
+
+`--check` verifies the bundled images, audio, and voice encryption offline; it does not connect to Discord. `--register` updates your bot's slash commands and is needed on first setup and after command changes. Global commands can take time to appear; test-server commands appear sooner. Use `--help` to see the options.
+
+Leave the terminal and computer running while playing; the bot goes offline when the program stops. Press **Ctrl+C** to stop it. If the bot cannot log in, check the token and application ID in `.env`.
+
+## Play
+
+1. Join a voice channel and use `/start` in a text channel. Players in the same voice channel press **Join**; the host presses **Start** and selects roles.
+2. Each player presses **Reveal my role**. Night actions and votes are private to the player.
+3. Discuss, then vote when time runs out or everyone agrees to `/skip`.
+
+Use `/time` for the remaining discussion time, `/rules` for the rules, and `/help` for more commands. `/start` also offers `quick`, `silent_night`, and `silent` options.
+
+## Development and releases
+
+For source development, install [Bun](https://bun.sh) at the version in `package.json`:
 
 ```sh
 bun install --frozen-lockfile
-bun run test:discord --register
+cp .env.example .env  # fill in a separate test bot's credentials
+bun run register
+bun start
+bun run build:executable  # native executable in dist/
+bun test
+bun run lint
+bun run typecheck
+bun audit
 ```
 
-The script checks lint, types, unit tests, dependencies, bot authentication,
-test-server access and slash commands before starting the bot with debug logs.
-`--register` replaces commands **only in the test server**; omit it if they are
-already registered. Use `--check-only` to run local checks without contacting
-Discord.
+Set `DEV_GUILD_ID` and register commands to enable `/playtest` with virtual players in that test server. `bun run test:discord --register` records a test report; review it for private information before sharing. Docker remains available through the existing `Dockerfile`.
 
-Play a game in Discord, then press **Ctrl+C in the terminal** to stop recording.
-The script saves `discord-test-report.txt` (overwritten on each run and ignored
-by Git). Tokens, Discord IDs and common identity fields are redacted, but review
-the file for other private details before sharing it. Paste its contents along
-with what you clicked, what you expected, and what actually happened. Never share
-your `.env` file or bot token.
+CI checks and builds all release targets on pushes and pull requests. To publish a release, update the version in `package.json`, commit and push it, then create and push a matching tag:
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+After the tests and isolated executable checks pass, GitHub Actions creates ZIPs containing binaries, configuration examples, license notices, and checksums. The release includes the matching application source; `BUN_LICENSE.md` in each ZIP describes Bun's linked libraries and how to rebuild its LGPL components. To compile with a modified Bun runtime, add `--compile-executable-path=/path/to/bun` to the build command.
 
 ## Credits
 
-Images are custom designed by [T44 Productions](https://www.t44.productions/home) with [CC BY-NC-ND 4.0 license](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+Artwork by [T44 Productions](https://www.t44.productions/home), licensed [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/). Code is licensed under [ISC](LICENSE).
 
-The following sound files were used:
-
-- [Night loop sample by Serop2012](https://freesound.org/people/serop2012/sounds/169458/)
-- [Rooster crow by Promete](https://freesound.org/people/promete/sounds/60142/)
-- [Gong sample by InspectorJ](https://freesound.org/people/InspectorJ/sounds/411090/)
+Sounds: [night loop by Serop2012](https://freesound.org/people/serop2012/sounds/169458/), [rooster by Promete](https://freesound.org/people/promete/sounds/60142/), and [gong by InspectorJ](https://freesound.org/people/InspectorJ/sounds/411090/).

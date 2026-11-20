@@ -30,6 +30,19 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
 let cached: Config | null = null;
 
 export function getConfig(): Config {
-  cached ??= parseConfig(process.env);
+  if (!cached) {
+    try {
+      process.loadEnvFile();
+    } catch (error) {
+      if (!(
+        error instanceof Error &&
+        'code' in error &&
+        error.code === 'ENOENT'
+      )) {
+        throw error;
+      }
+    }
+    cached = parseConfig(process.env);
+  }
   return cached;
 }

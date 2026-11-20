@@ -14,7 +14,6 @@ import {
   type VoiceBasedChannel,
 } from 'discord.js';
 import {
-  ASSETS_DIR,
   MAXIMUM_PLAYERS,
   MINIMUM_PLAYERS,
   NIGHT_ALMOST_OVER_REMINDER,
@@ -24,6 +23,7 @@ import {
   VOTE_WAIT_TIME,
 } from './Constants';
 import { newCustomId } from './ConversationHelper';
+import { readRoleImage } from './EmbeddedAssets';
 import { Phase } from './enums/Phase';
 import type { RoleName } from './enums/RoleName';
 import {
@@ -355,7 +355,7 @@ export class Game {
       return;
     }
     const roleName = this._startGameState.getRoleName(player);
-    const image = new AttachmentBuilder(`${ASSETS_DIR}imgs/${roleName}.png`, {
+    const image = new AttachmentBuilder(await readRoleImage(roleName), {
       name: `${roleName}.png`,
     });
     await interaction.reply({

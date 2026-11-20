@@ -4,7 +4,6 @@ export const REPOSITORY_URL =
   'https://github.com/DrSkunk/one-night-ultimate-discord';
 export const RULES_URL =
   'http://cloud-3.steamusercontent.com/ugc/1788471362465556315/4214EC45E12DF09CD40CF84DC7A00C1744412402/';
-export const ASSETS_DIR = new URL('../assets/', import.meta.url).pathname;
 export const MINIMUM_PLAYERS = 3;
 export const MAXIMUM_PLAYERS = 10;
 export const CARDS_ON_TABLE = 3;

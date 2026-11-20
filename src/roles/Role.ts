@@ -1,12 +1,13 @@
 import { RoleName } from '../enums/RoleName';
-import { Game } from '../Game';
-import { Player } from '../Player';
+import type { Game } from '../Game';
+import type { Player } from '../Player';
 
 export abstract class Role {
   abstract readonly name: RoleName;
 
-  abstract doTurn(game: Game, player: Player): void;
+  abstract doTurn(game: Game, player: Player): void | Promise<void>;
 }
+
 export function isMimicRole(roleName: RoleName): boolean {
   return [
     RoleName.werewolf,

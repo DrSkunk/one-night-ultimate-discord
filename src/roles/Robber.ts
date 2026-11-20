@@ -5,9 +5,9 @@ import {
 } from '../ConversationHelper';
 import { ChoosePlayerType } from '../enums/ChoosePlayer';
 import { RoleName } from '../enums/RoleName';
-import { Game } from '../Game';
+import type { Game } from '../Game';
 import { Log } from '../Log';
-import { Player } from '../Player';
+import type { Player } from '../Player';
 import { Role } from './Role';
 
 export class Robber extends Role {

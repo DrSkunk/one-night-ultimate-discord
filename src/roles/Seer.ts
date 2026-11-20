@@ -3,12 +3,13 @@ import {
   ChoosePlayer,
   ChoosePlayerOrTable,
   AcknowledgeMessage,
+  tableCardLabel,
 } from '../ConversationHelper';
 import { ChoosePlayerType } from '../enums/ChoosePlayer';
 import { RoleName } from '../enums/RoleName';
-import { Game } from '../Game';
+import type { Game } from '../Game';
 import { Log } from '../Log';
-import { Player } from '../Player';
+import type { Player } from '../Player';
 import { Role } from './Role';
 
 export class Seer extends Role {
@@ -17,11 +18,8 @@ export class Seer extends Role {
   async doTurn(game: Game, player: Player): Promise<void> {
     const gameState = game.gameState;
     const lookAtPlayerCards = await ChoosePlayerOrTable(
-      gameState,
       player,
-      `Do you either:
-- 1️⃣: Look at another player's card
-- 2️⃣: Look at two cards in the middle?`
+      "You wake up. Do you want to look at another player's card or at two cards in the middle?"
     );
     if (lookAtPlayerCards) {
       const chosenPlayer = (
@@ -39,18 +37,16 @@ export class Seer extends Role {
       );
     } else {
       const chosenCards = await ChooseTableCard(
-        gameState,
         player,
         2,
         'You can take a look at two cards on the table.'
       );
-      let selectedRoles = '';
-      for (const chosenCard of chosenCards) {
-        const emoji = Object.keys(chosenCard)[0];
-        const roleName = gameState.tableRoles[chosenCard[emoji]].name;
-
-        selectedRoles += `\n${emoji}: ${roleName}`;
-      }
+      const selectedRoles = chosenCards
+        .map(
+          (index) =>
+            `\n${tableCardLabel(index)}: ${gameState.tableRoles[index].name}`
+        )
+        .join('');
 
       await AcknowledgeMessage(
         player,

@@ -1,15 +1,24 @@
-import { Message } from 'discord.js';
-import { Command } from '../types/Command';
+import {
+  InteractionContextType,
+  MessageFlags,
+  SlashCommandBuilder,
+} from 'discord.js';
+import type { Command } from '../types/Command';
 
-const command: Command = {
-  names: ['ping'],
-  description: 'Send a ping to the bot to see how responsive it is.',
-  params: [],
-  execute,
-  adminOnly: false,
+export const ping: Command = {
+  data: new SlashCommandBuilder()
+    .setName('ping')
+    .setDescription('Check how responsive the bot is.')
+    .setContexts(InteractionContextType.Guild),
+  async execute(interaction) {
+    const response = await interaction.reply({
+      content: 'Pinging…',
+      flags: MessageFlags.Ephemeral,
+      withResponse: true,
+    });
+    const sentAt = response.resource?.message?.createdTimestamp ?? Date.now();
+    await interaction.editReply(
+      `Pong! Round trip: \`${sentAt - interaction.createdTimestamp}ms\`, gateway: \`${interaction.client.ws.ping}ms\``
+    );
+  },
 };
-
-async function execute(msg: Message): Promise<void> {
-  msg.reply(`Pong! \`${Date.now() - msg.createdTimestamp}ms\``);
-}
-export = command;

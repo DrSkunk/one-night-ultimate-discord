@@ -1,22 +1,31 @@
-import { Message } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  InteractionContextType,
+  MessageFlags,
+  SlashCommandBuilder,
+} from 'discord.js';
 import { RULES_URL } from '../Constants';
-import { Command } from '../types/Command';
+import type { Command } from '../types/Command';
 
-const command: Command = {
-  names: ['rules', 'r'],
-  description: 'Send a DM with a link to the official rules.',
-  params: [],
-  execute,
-  adminOnly: false,
+export const rules: Command = {
+  data: new SlashCommandBuilder()
+    .setName('rules')
+    .setDescription('Get a link to the official rules.')
+    .setContexts(InteractionContextType.Guild),
+  async execute(interaction) {
+    await interaction.reply({
+      content: 'You can read the official rules here:',
+      components: [
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setStyle(ButtonStyle.Link)
+            .setLabel('Official rules (PDF)')
+            .setURL(RULES_URL)
+        ),
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+  },
 };
-
-async function execute(msg: Message): Promise<void> {
-  try {
-    await msg.author.send(`You can read the rules here: ${RULES_URL}`);
-  } catch (error) {
-    msg.reply(
-      `I cannot send you a DM with the rules because of your privacy settings. This is needed to be able to play the game.`
-    );
-  }
-}
-export = command;

@@ -1,31 +1,29 @@
-import { Message, MessageEmbed } from 'discord.js';
-import { Command } from '../types/Command';
-import packageJson from '../../package.json';
+import {
+  EmbedBuilder,
+  InteractionContextType,
+  MessageFlags,
+  SlashCommandBuilder,
+} from 'discord.js';
+import packageJson from '../../package.json' with { type: 'json' };
+import { REPOSITORY_URL } from '../Constants';
+import type { Command } from '../types/Command';
 
-const command: Command = {
-  names: ['version', 'v'],
-  description: 'Get current bot version.',
-  params: [],
-  execute,
-  adminOnly: false,
+export const version: Command = {
+  data: new SlashCommandBuilder()
+    .setName('version')
+    .setDescription('Get the current bot version.')
+    .setContexts(InteractionContextType.Guild),
+  async execute(interaction) {
+    await interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setTitle('One Night Ultimate Discord')
+          .setURL(REPOSITORY_URL)
+          .setDescription(`Visit ${REPOSITORY_URL} for the source code`)
+          .addFields({ name: 'Version', value: `v${packageJson.version}` })
+          .setFooter({ text: 'Made with ❤️ by Sebastiaan Jansen / DrSkunk' }),
+      ],
+      flags: MessageFlags.Ephemeral,
+    });
+  },
 };
-
-async function execute(msg: Message): Promise<void> {
-  const embed = new MessageEmbed();
-
-  embed.setTitle('One night ultimate Discord');
-  embed.setDescription(
-    'Visit https://github.com/DrSkunk/one-night-ultimate-discord for source code'
-  );
-  embed.setURL('https://github.com/DrSkunk/one-night-ultimate-discord');
-
-  embed.addField('Version', `v${packageJson.version}`);
-
-  embed.setFooter(
-    'Made with ❤️ by Sebastiaan Jansen / DrSkunk',
-    'https://i.imgur.com/RPKkHMf.png'
-  );
-
-  await msg.channel.send(embed);
-}
-export = command;

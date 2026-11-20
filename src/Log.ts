@@ -1,57 +1,51 @@
 /* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-class Log {
-  public warn(...message: any) {
-    // Yellow
-    console.warn(
-      '\x1b[33m%s',
-      this.getTimestamp(),
-      '- WARN -',
-      ...message,
-      '\x1b[0m'
-    );
+type Level = 'debug' | 'info' | 'warn' | 'error';
+
+const LEVELS: Record<Level, number> = {
+  debug: 10,
+  info: 20,
+  warn: 30,
+  error: 40,
+};
+
+class Logger {
+  private threshold = LEVELS.info;
+
+  public setLevel(level: Level): void {
+    this.threshold = LEVELS[level];
   }
 
-  public error(...message: any) {
-    // Red
-    console.error(
-      '\x1b[31m%s',
-      this.getTimestamp(),
-      '- ERROR -',
-      ...message,
-      '\x1b[0m'
-    );
+  public debug(...message: unknown[]): void {
+    if (this.enabled('debug'))
+      console.debug('\x1b[35m%s', this.prefix('DEBUG'), ...message, '\x1b[0m');
   }
 
-  public info(...message: any) {
-    // Blue
-    console.info(
-      '\x1b[36m%s',
-      this.getTimestamp(),
-      '- INFO -',
-      ...message,
-      '\x1b[0m'
-    );
+  public info(...message: unknown[]): void {
+    if (this.enabled('info'))
+      console.info('\x1b[36m%s', this.prefix('INFO'), ...message, '\x1b[0m');
   }
 
-  public log(...message: any) {
-    console.log(this.getTimestamp(), '- LOG -', ...message);
+  public log(...message: unknown[]): void {
+    if (this.enabled('info')) console.log(this.prefix('LOG'), ...message);
   }
 
-  public debug(...message: any) {
-    // Magenta
-    console.debug(
-      '\x1b[35m%s',
-      this.getTimestamp(),
-      '- DEBUG -',
-      ...message,
-      '\x1b[0m'
-    );
+  public warn(...message: unknown[]): void {
+    if (this.enabled('warn'))
+      console.warn('\x1b[33m%s', this.prefix('WARN'), ...message, '\x1b[0m');
   }
-  private getTimestamp() {
-    return new Date().toISOString();
+
+  public error(...message: unknown[]): void {
+    if (this.enabled('error'))
+      console.error('\x1b[31m%s', this.prefix('ERROR'), ...message, '\x1b[0m');
+  }
+
+  private enabled(level: Level): boolean {
+    return LEVELS[level] >= this.threshold;
+  }
+
+  private prefix(level: string): string {
+    return `${new Date().toISOString()} - ${level} -`;
   }
 }
 
-const log = new Log();
-export { log as Log };
+export const Log = new Logger();

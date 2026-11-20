@@ -1,114 +1,108 @@
-import Discord, { User, VoiceChannel } from 'discord.js';
-import glob from 'glob';
-import { promisify } from 'util';
-import { Prefix } from './Config';
+import {
+  ActivityType,
+  Client,
+  Events,
+  GatewayIntentBits,
+  MessageFlags,
+  type ChatInputCommandInteraction,
+  type Interaction,
+  type MessageComponentInteraction,
+} from 'discord.js';
+import { findCommand } from './commands';
 import { Log } from './Log';
-import { Command } from './types/Command';
+import { UserError, userMessage } from './UserError';
 
-const globPromise = promisify(glob);
+// Components are handled by collectors attached to their message. When no
+// collector answers (e.g. after a restart), tell the user the button expired.
+const UNHANDLED_COMPONENT_GRACE = 2_500;
 
-class DiscordClient {
-  private _token: string;
-  private _client: Discord.Client;
-  private _commands: Command[];
-  public sendingMessage: boolean;
-  public failedAttempts: number;
+export function createClient(): Client {
+  const client = new Client({
+    // No privileged intents needed: all input arrives through interactions.
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
+    allowedMentions: { parse: ['users'] },
+  });
 
-  get user(): User {
-    const { user } = this._client;
-    if (!user) {
-      throw new Error('No user yet.');
-    }
-    return user;
+  client.once(Events.ClientReady, (readyClient) => {
+    Log.info(`Logged in as ${readyClient.user.tag}`);
+    readyClient.user.setActivity('/help', { type: ActivityType.Listening });
+  });
+
+  client.on(Events.InteractionCreate, (interaction) => {
+    routeInteraction(interaction).catch((error) =>
+      Log.error('Failed to handle interaction', error)
+    );
+  });
+
+  client.on(Events.Error, (error) => Log.error('Discord client error', error));
+  client.on(Events.Warn, (message) => Log.warn(message));
+
+  return client;
+}
+
+export async function routeInteraction(
+  interaction: Interaction
+): Promise<void> {
+  if (interaction.isChatInputCommand()) {
+    await handleCommand(interaction);
+  } else if (interaction.isMessageComponent()) {
+    handleUnclaimedComponent(interaction);
   }
+}
 
-  get commands() {
-    return this._commands;
+async function handleCommand(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
+  const command = findCommand(interaction.commandName);
+  if (!command) {
+    await replyError(interaction, 'Unknown command.');
+    return;
   }
-
-  public isUsingVoice(guildId: string, voiceChannel: VoiceChannel): boolean {
-    if (!this._client.voice) {
-      return false;
+  if (!interaction.inCachedGuild()) {
+    await replyError(interaction, 'This command can only be used in a server.');
+    return;
+  }
+  Log.debug(`/${interaction.commandName} used by ${interaction.user.id}`);
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    if (error instanceof UserError) {
+      Log.debug(`/${interaction.commandName} rejected: ${error.message}`);
     } else {
-      for (const connection of this._client.voice.connections.array()) {
-        // If connected to same channel, voice is available
-        if (connection.channel.id === voiceChannel.id) {
-          return false;
-        }
-      }
-      // Return true if there's a different voice channel used in the same guild
-      return this._client.voice.connections
-        .map((voiceCon) => voiceCon.channel.guild.id)
-        .includes(guildId);
+      Log.error(`/${interaction.commandName} failed`, error);
     }
-  }
-
-  constructor(token: string) {
-    this._token = token;
-    this._client = new Discord.Client();
-    this._commands = [];
-    this.sendingMessage = false;
-    this.failedAttempts = 0;
-  }
-
-  start() {
-    this._client.on('ready', async () => {
-      Log.info(`Logged in!`);
-      if (this._client.user) {
-        this._client.user
-          .setActivity(`${Prefix}help`, { type: 'LISTENING' })
-          .then((presence) =>
-            Log.info(`Activity set to ${presence.activities[0].name}`)
-          )
-          .catch(Log.error);
-      }
-      const commandFiles = await globPromise(`${__dirname}/commands/*.{js,ts}`);
-
-      for (const file of commandFiles) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const command = require(file) as Command;
-        Log.info('Added command', command.names[0]);
-        this._commands.push(command);
-      }
-    });
-
-    this._client.on('message', async (message) => {
-      if (!message.guild || !message.content.startsWith(Prefix)) {
-        return;
-      }
-
-      const [commandName, ...args] = message.content
-        .slice(Prefix.length)
-        .split(/ +/);
-
-      const command = this._commands.find((c) => c.names.includes(commandName));
-
-      if (command) {
-        const isAdmin = message.member?.hasPermission('ADMINISTRATOR');
-        if (command.adminOnly && !isAdmin) {
-          message.reply('This command is for admins only');
-        } else {
-          command.execute(message, args);
-        }
-      } else {
-        message.reply(
-          `Unrecognized command. Type \`${Prefix}help\` for the list of commands.`
-        );
-      }
-    });
-    this._client.login(this._token);
+    await replyError(interaction, userMessage(error));
   }
 }
 
-let instance: DiscordClient | null = null;
-
-export function initDiscord(token: string): void {
-  instance = new DiscordClient(token);
+function handleUnclaimedComponent(
+  interaction: MessageComponentInteraction
+): void {
+  setTimeout(() => {
+    if (interaction.replied || interaction.deferred) {
+      return;
+    }
+    interaction
+      .reply({
+        content: 'This interaction has expired.',
+        flags: MessageFlags.Ephemeral,
+      })
+      .catch(() => undefined);
+  }, UNHANDLED_COMPONENT_GRACE);
 }
 
-export function getDiscordInstance(): DiscordClient {
-  if (!instance) {
-    throw new Error('Discord client not started.');
+async function replyError(
+  interaction: ChatInputCommandInteraction,
+  content: string
+): Promise<void> {
+  const options = { content, flags: MessageFlags.Ephemeral } as const;
+  try {
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp(options);
+    } else {
+      await interaction.reply(options);
+    }
+  } catch (error) {
+    Log.error('Unable to send error reply', error);
   }
-  return instance;
 }

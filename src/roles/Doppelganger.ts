@@ -1,9 +1,9 @@
 import { AcknowledgeMessage, ChoosePlayer } from '../ConversationHelper';
 import { ChoosePlayerType } from '../enums/ChoosePlayer';
 import { RoleName } from '../enums/RoleName';
-import { Game } from '../Game';
+import type { Game } from '../Game';
 import { Log } from '../Log';
-import { Player } from '../Player';
+import type { Player } from '../Player';
 import { isInstantRole, isMimicRole, Role } from './Role';
 
 export class Doppelganger extends Role {

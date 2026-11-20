@@ -1,111 +1,129 @@
-import { StreamDispatcher, VoiceChannel, VoiceConnection } from 'discord.js';
-import { EMPTY_VOICE_CHECK_TIME } from './Constants';
-import { getDiscordInstance } from './DiscordClient';
+import { createReadStream } from 'node:fs';
+import {
+  AudioPlayerStatus,
+  createAudioPlayer,
+  createAudioResource,
+  entersState,
+  getVoiceConnection,
+  joinVoiceChannel,
+  NoSubscriberBehavior,
+  StreamType,
+  VoiceConnectionStatus,
+  type AudioPlayer,
+  type VoiceConnection,
+} from '@discordjs/voice';
+import type { VoiceBasedChannel } from 'discord.js';
+import { ASSETS_DIR, EMPTY_VOICE_CHECK_TIME } from './Constants';
 import { Sound } from './enums/Sound';
 import { Log } from './Log';
 
+const CONNECT_TIMEOUT = 20_000;
+
 export class SoundManager {
-  private _voiceChannel: VoiceChannel | null;
-  private _connection: VoiceConnection | null;
-  private _dispatcher: StreamDispatcher | null;
-  private _guildId: string;
-  private _silentNight: boolean;
-  private _silent: boolean;
+  private readonly _voiceChannel: VoiceBasedChannel;
+  private readonly _silentNight: boolean;
+  private _connection: VoiceConnection | null = null;
+  private _player: AudioPlayer | null = null;
+  private _emptyCheck: ReturnType<typeof setInterval> | null = null;
 
-  constructor(guildId: string, silentNight: boolean, silent: boolean) {
-    this._voiceChannel = null;
-    this._connection = null;
-    this._dispatcher = null;
-    this._guildId = guildId;
-    this._silentNight = silentNight;
-    this._silent = silent;
-    this.disconnectWhenEmpty();
-  }
-
-  set voiceChannel(voiceChannel: VoiceChannel) {
-    const client = getDiscordInstance();
-    if (client.isUsingVoice(this._guildId, voiceChannel)) {
-      throw new Error('Already connected to a voice channel of this guild.');
-    }
-    if (this._silent) {
+  /** Throws when voice can't be used for this game. */
+  constructor(
+    voiceChannel: VoiceBasedChannel,
+    silentNight: boolean,
+    silent: boolean
+  ) {
+    if (silent) {
       throw new Error('Running in silent mode.');
     }
+    if (getVoiceConnection(voiceChannel.guild.id)) {
+      throw new Error('Already connected to a voice channel of this guild.');
+    }
     this._voiceChannel = voiceChannel;
+    this._silentNight = silentNight;
   }
 
-  public async startNightLoop(): Promise<void> {
-    if (this._silentNight || this._silent) {
+  public async connect(): Promise<void> {
+    const connection = joinVoiceChannel({
+      channelId: this._voiceChannel.id,
+      guildId: this._voiceChannel.guild.id,
+      adapterCreator: this._voiceChannel.guild.voiceAdapterCreator,
+      selfDeaf: true,
+    });
+    this._connection = connection;
+    try {
+      await entersState(
+        connection,
+        VoiceConnectionStatus.Ready,
+        CONNECT_TIMEOUT
+      );
+    } catch (error) {
+      this.stop();
+      throw error;
+    }
+    const player = createAudioPlayer({
+      behaviors: { noSubscriber: NoSubscriberBehavior.Pause },
+    });
+    player.on('error', (error) => Log.error('Audio player error', error));
+    connection.subscribe(player);
+    this._player = player;
+    this._emptyCheck = setInterval(() => {
+      const humans = this._voiceChannel.members.filter((m) => !m.user.bot);
+      if (humans.size === 0) {
+        Log.info('Voice channel is empty, disconnecting.');
+        this.stop();
+      }
+    }, EMPTY_VOICE_CHECK_TIME);
+  }
+
+  public startNightLoop(): void {
+    if (this._silentNight) {
       Log.info('Silent night mode, not playing night loop');
       return;
     }
     Log.info('Starting night loop');
-
-    if (!this._voiceChannel) {
-      return;
-    }
-    this._connection = await this._voiceChannel.join();
-    this._connection.voice?.setSelfDeaf(true);
-    this._dispatcher = this.play(Sound.nightloop);
+    this.play(Sound.nightloop);
   }
 
   public async stopNightLoop(): Promise<void> {
     Log.info('Stopping night loop');
-    if (!this._voiceChannel) {
-      return;
+    this._player?.stop();
+    if (this._player) {
+      await entersState(this._player, AudioPlayerStatus.Idle, 5_000).catch(
+        () => undefined
+      );
     }
-    if (!this._silentNight && !this._silent) {
-      await this.fadeOut(1);
-    }
-    if (!this._silent) {
-      this._dispatcher = this.play(Sound.rooster);
-    }
+    this.play(Sound.rooster);
   }
 
   public playGong(): void {
-    if (this._silent) {
-      Log.info('Silent night mode, not playing "time almost up" sample');
-      return;
-    }
     Log.info('Playing "time almost up" sample');
     this.play(Sound.gong);
   }
 
-  private play(sound: Sound): StreamDispatcher {
-    if (this._connection) {
-      return this._connection.play(
-        `${process.cwd()}/assets/sound/${sound}.ogg`
-      );
-    } else {
-      throw new Error('not connected to voice');
-    }
-  }
-
-  private async fadeOut(volume: number): Promise<void> {
-    if (!this._dispatcher) {
+  private play(sound: Sound): void {
+    if (!this._player) {
       return;
     }
-    if (volume <= 0) {
-      this._dispatcher.destroy();
-      return;
-    }
-    this._dispatcher.setVolume(volume);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    await this.fadeOut(volume - 0.05);
+    const resource = createAudioResource(
+      createReadStream(`${ASSETS_DIR}sound/${sound}.ogg`),
+      { inputType: StreamType.OggOpus }
+    );
+    this._player.play(resource);
   }
 
   public stop(): void {
-    if (this._dispatcher) {
-      this._dispatcher.destroy();
+    if (this._emptyCheck) {
+      clearInterval(this._emptyCheck);
+      this._emptyCheck = null;
     }
-  }
-
-  private disconnectWhenEmpty() {
-    const intervalId = setInterval(() => {
-      if (this._voiceChannel && this._voiceChannel.members.size === 1) {
-        this._connection?.disconnect();
-        clearInterval(intervalId);
-        this._voiceChannel = null;
-      }
-    }, EMPTY_VOICE_CHECK_TIME);
+    this._player?.stop(true);
+    this._player = null;
+    if (
+      this._connection &&
+      this._connection.state.status !== VoiceConnectionStatus.Destroyed
+    ) {
+      this._connection.destroy();
+    }
+    this._connection = null;
   }
 }

@@ -1,8 +1,12 @@
-import { AcknowledgeMessage, ChooseTableCard } from '../ConversationHelper';
+import {
+  AcknowledgeMessage,
+  ChooseTableCard,
+  tableCardLabel,
+} from '../ConversationHelper';
 import { RoleName } from '../enums/RoleName';
-import { Game } from '../Game';
+import type { Game } from '../Game';
 import { Log } from '../Log';
-import { Player } from '../Player';
+import type { Player } from '../Player';
 import { Role } from './Role';
 
 export class Werewolf extends Role {
@@ -28,23 +32,17 @@ export class Werewolf extends Role {
       const prompt = `You wake up and see that the other ${werewolfSentence} ${otherNames}.`;
       await AcknowledgeMessage(player, prompt);
 
-      player.send("You look in each other's eyes and go back to sleep.");
+      await player.send("You look in each other's eyes and go back to sleep.");
     } else {
-      player.send('You wake and you see that you are the only werewolf.');
-
-      const chosenCard = (
-        await ChooseTableCard(
-          game.gameState,
-          player,
-          1,
-          'You can take a look at a card on the table'
-        )
-      )[0];
-      const emoji = Object.keys(chosenCard)[0];
-      const roleName = tableRoles[chosenCard[emoji]].name;
+      const [cardIndex] = await ChooseTableCard(
+        player,
+        1,
+        'You wake and you see that you are the only werewolf. You can take a look at a card on the table.'
+      );
+      const roleName = tableRoles[cardIndex].name;
       await AcknowledgeMessage(
         player,
-        `You see that the card ${emoji} has the role ${roleName}`
+        `You see that ${tableCardLabel(cardIndex)} has the role ${roleName}`
       );
       await player.send('You go back to sleep.');
     }

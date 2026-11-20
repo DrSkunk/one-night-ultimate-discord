@@ -1,45 +1,117 @@
-import { Message, TextChannel } from 'discord.js';
-import { getPlayerList } from '../ConversationHelper';
-import { getGamesManagerInstance } from '../GamesManager';
-import { Command } from '../types/Command';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+  InteractionContextType,
+  MessageFlags,
+  SlashCommandBuilder,
+  type MessageActionRowComponentBuilder,
+} from 'discord.js';
+import { SKIP_WAIT_TIME } from '../Constants';
+import { customIdValue, newCustomId } from '../ConversationHelper';
 import { Phase } from '../enums/Phase';
+import { getGamesManagerInstance } from '../GamesManager';
+import { Log } from '../Log';
+import type { Command } from '../types/Command';
+import { UserError } from '../UserError';
 
-const command: Command = {
-  names: ['skip'],
-  description: 'End the voting round earlier and skip to the voting part.',
-  params: [],
-  execute,
-  adminOnly: false,
-};
+const activeSkipVotes = new Set<string>();
 
-async function execute(msg: Message): Promise<void> {
-  try {
-    const textChannel = msg.channel as TextChannel;
-    const gamesManager = getGamesManagerInstance();
-
-    const game = gamesManager.getGame(textChannel);
-    const gamePlayer = game.players.find(({ id }) => msg.author.id === id);
-    if (!gamePlayer) {
-      throw new Error("Cannot skip, you're not a player in this game.");
+export const skip: Command = {
+  data: new SlashCommandBuilder()
+    .setName('skip')
+    .setDescription('Propose to end the discussion early and go to the vote.')
+    .setContexts(InteractionContextType.Guild),
+  async execute(interaction) {
+    if (!interaction.channel) {
+      throw new UserError('This command can only be used in a text channel.');
+    }
+    const game = getGamesManagerInstance().getGame(interaction.channel);
+    if (!game.getPlayer(interaction.user.id)) {
+      throw new UserError("Cannot skip, you're not a player in this game.");
     }
     if (game.phase !== Phase.discussion) {
-      throw new Error('Cannot skip, game is not in the discussion phase');
+      throw new UserError(
+        'Cannot skip, the game is not in the discussion phase.'
+      );
     }
-    const potentialPlayers = game.players.map(({ user }) => user);
-    const playerTags = game.players.map(({ tag }) => tag).join(', ');
-    const text = `<@${msg.author.id}> wants to skip to the voting phase. Does everyone agree?\n${playerTags}`;
-    const agreeingPlayers = await getPlayerList(
-      textChannel,
-      potentialPlayers,
-      text
-    );
-    if (agreeingPlayers.length !== game.players.length) {
-      throw new Error('Not everyone wants to skip to the voting phase.');
+    if (activeSkipVotes.has(interaction.channelId)) {
+      throw new UserError('There is already a skip vote in progress.');
     }
-    textChannel.send('Skipping to voting phase');
-    game.endGame();
-  } catch (error) {
-    msg.reply(error.message);
-  }
-}
-export = command;
+    activeSkipVotes.add(interaction.channelId);
+
+    try {
+      const agreed = new Set([interaction.user.id]);
+      const content = () =>
+        `<@${interaction.user.id}> wants to skip to the voting phase. Does everyone agree?\n${game.tagPlayersText}\nAgreed: ${agreed.size}/${game.players.length}`;
+      const row =
+        new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId(newCustomId('skip', 'agree'))
+            .setLabel('Agree')
+            .setStyle(ButtonStyle.Success),
+          new ButtonBuilder()
+            .setCustomId(newCustomId('skip', 'disagree'))
+            .setLabel('Disagree')
+            .setStyle(ButtonStyle.Danger)
+        );
+      const response = await interaction.reply({
+        content: content(),
+        components: [row],
+        withResponse: true,
+      });
+      const message = response.resource?.message;
+      if (!message) {
+        return;
+      }
+
+      const collector = message.createMessageComponentCollector({
+        componentType: ComponentType.Button,
+        time: SKIP_WAIT_TIME,
+      });
+      collector.on('collect', (i) => {
+        (async () => {
+          if (!game.getPlayer(i.user.id)) {
+            await i.reply({
+              content: "You're not a player in this game.",
+              flags: MessageFlags.Ephemeral,
+            });
+            return;
+          }
+          if (customIdValue(i.customId) === 'disagree') {
+            await i.deferUpdate();
+            collector.stop('declined');
+            return;
+          }
+          agreed.add(i.user.id);
+          await i.update({ content: content() });
+          if (agreed.size === game.players.length) {
+            collector.stop('agreed');
+          }
+        })().catch((error) => Log.error('Skip interaction failed', error));
+      });
+
+      const reason = await new Promise<string>((resolve) =>
+        collector.once('end', (_collected, endReason) => resolve(endReason))
+      );
+      if (reason === 'agreed' && game.phase === Phase.discussion) {
+        await interaction.editReply({
+          content: 'Everyone agreed. Skipping to the voting phase!',
+          components: [],
+        });
+        game.endGame().catch((error) => {
+          Log.error(error);
+          void game.abort('Something went wrong, the game was stopped.');
+        });
+      } else {
+        await interaction.editReply({
+          content: 'Not everyone wants to skip to the voting phase.',
+          components: [],
+        });
+      }
+    } finally {
+      activeSkipVotes.delete(interaction.channelId);
+    }
+  },
+};

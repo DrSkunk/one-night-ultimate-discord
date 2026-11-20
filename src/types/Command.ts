@@ -1,10 +1,13 @@
-import { Message } from 'discord.js';
-import { CommandParameter } from './CommandParameter';
+import type {
+  ChatInputCommandInteraction,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
+} from 'discord.js';
 
 export interface Command {
-  names: string[];
-  params: CommandParameter[];
-  description: string;
-  execute(message: Message, args?: string[]): void;
-  adminOnly: boolean;
+  data: {
+    name: string;
+    description: string;
+    toJSON(): RESTPostAPIChatInputApplicationCommandsJSONBody;
+  };
+  execute(interaction: ChatInputCommandInteraction<'cached'>): Promise<void>;
 }

@@ -1,8 +1,8 @@
 import { Collection } from 'discord.js';
 import { RoleName } from './enums/RoleName';
 import { getRoleByName } from './GameLogic';
-import { Player } from './Player';
-import { Role } from './roles/Role';
+import type { Player } from './Player';
+import type { Role } from './roles/Role';
 
 type PlayerRoles = { [key in RoleName]: Collection<string, Player> };
 
@@ -102,7 +102,10 @@ export class GameState {
   }
 
   public moveDoppelGanger(name: RoleName): void {
-    const doppelGangerPlayer = this.playerRoles.doppelganger.array()[0];
+    const doppelGangerPlayer = this.playerRoles.doppelganger.first();
+    if (!doppelGangerPlayer) {
+      throw new Error('There is no doppelganger to move.');
+    }
     this.playerRoles[name].set(doppelGangerPlayer.id, doppelGangerPlayer);
     this.playerRoles.doppelganger.clear();
   }

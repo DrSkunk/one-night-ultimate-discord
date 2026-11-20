@@ -1,17 +1,12 @@
+import { randomInt } from 'node:crypto';
 import { Collection } from 'discord.js';
-import {
-  CARDS_ON_TABLE,
-  FAKE_USER_TIME,
-  IMG_BASE_URL,
-  MAX_ROLES_COUNT,
-} from './Constants';
-import { AcknowledgeMessage } from './ConversationHelper';
+import { CARDS_ON_TABLE, FAKE_USER_TIME, MAX_ROLES_COUNT } from './Constants';
 import { RoleName } from './enums/RoleName';
 import { Team } from './enums/Team';
-import { Game } from './Game';
-import { GameState } from './GameState';
+import type { Game } from './Game';
+import type { GameState } from './GameState';
 import { Log } from './Log';
-import { Player } from './Player';
+import type { Player } from './Player';
 import { Doppelganger } from './roles/Doppelganger';
 import { Drunk } from './roles/Drunk';
 import { Hunter } from './roles/Hunter';
@@ -19,13 +14,13 @@ import { Insomniac } from './roles/Insomniac';
 import { Mason } from './roles/Mason';
 import { Minion } from './roles/Minion';
 import { Robber } from './roles/Robber';
-import { isMimicRole, Role } from './roles/Role';
+import { isMimicRole, type Role } from './roles/Role';
 import { Seer } from './roles/Seer';
 import { Tanner } from './roles/Tanner';
 import { Troublemaker } from './roles/Troublemaker';
 import { Villager } from './roles/Villager';
 import { Werewolf } from './roles/Werewolf';
-import { Time } from './types/Time';
+import type { Time } from './types/Time';
 
 export const callOrder = [
   RoleName.doppelganger,
@@ -39,25 +34,13 @@ export const callOrder = [
   RoleName.insomniac,
 ];
 
-// Source: https://stackoverflow.com/a/2450976/2174255
-export function shuffle<T>(array: T[]): T[] {
-  const copy = [];
-  let n = array.length;
-  let i;
-
-  // While there remain elements to shuffle…
-  while (n) {
-    // Pick a remaining element…
-    i = Math.floor(Math.random() * array.length);
-
-    // If not already shuffled, move it to the new array.
-    if (i in array) {
-      copy.push(array[i]);
-      delete array[i];
-      n--;
-    }
+/** Unbiased Fisher-Yates shuffle using a CSPRNG. Does not mutate the input. */
+export function shuffle<T>(array: readonly T[]): T[] {
+  const copy = array.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = randomInt(i + 1);
+    [copy[i], copy[j]] = [copy[j], copy[i]];
   }
-
   return copy;
 }
 
@@ -89,42 +72,6 @@ export function distributeRoles(
       }
     }
   }
-}
-
-export async function sendRoleMessages(
-  gameState: GameState,
-  players: Player[]
-): Promise<string[]> {
-  const roleMessages = players.map(async (player) => {
-    const roleName = gameState.getRoleName(player);
-    await player.send({
-      files: [
-        {
-          attachment: `${IMG_BASE_URL}banner.png`,
-          name: 'banner.png',
-        },
-      ],
-    });
-    await player.send({
-      content: `A new game has started where you have the role ||**${roleName}**||.`,
-      files: [
-        {
-          attachment: `${IMG_BASE_URL}${roleName}.png`,
-          name: `SPOILER_${roleName}.png`,
-        },
-      ],
-    });
-
-    return AcknowledgeMessage(player, 'You fall deeply asleep.');
-  });
-
-  const invalidPlayerIDs = (await Promise.allSettled(roleMessages))
-    .map((item, i) => ({ ...item, i }))
-    .filter((result) => result.status === 'rejected')
-    .map(({ i }) => {
-      return players[i].id;
-    });
-  return invalidPlayerIDs;
 }
 
 export function millisToTime(millis: number): Time {
@@ -210,39 +157,22 @@ export function getWinner(
     );
     playersWhoDie = playersWhoDieWithCount.map(({ player }) => player);
 
-    let hunterIds: string[];
-    if (gameState.playerRoles.hunter) {
-      hunterIds = gameState.playerRoles.hunter.map(({ id }) => id);
-    }
+    const hunterIds = gameState.playerRoles.hunter.map(({ id }) => id);
     dyingHunters = playersWhoDie.filter(({ id }) => hunterIds.includes(id));
 
-    let tannerIds: string[];
-    if (gameState.playerRoles.tanner) {
-      tannerIds = gameState.playerRoles.tanner.map(({ id }) => id);
-    }
+    const tannerIds = gameState.playerRoles.tanner.map(({ id }) => id);
 
-    let werewolfIds: string[];
-    if (gameState.playerRoles.werewolf) {
-      werewolfIds = gameState.playerRoles.werewolf.map(({ id }) => id);
-    }
+    const werewolfIds = gameState.playerRoles.werewolf.map(({ id }) => id);
 
     // If a hunter dies, its target also dies
     if (dyingHunters.length > 0) {
-      hunterKillList = dyingHunters.map((dyingHunter) => {
+      // A hunter who did not vote takes nobody with them.
+      hunterKillList = dyingHunters.flatMap((dyingHunter) => {
         const hunterChoice = chosenPlayers.find(
           ({ chosenBy }) => chosenBy.id === dyingHunter.id
         );
-        if (!hunterChoice) {
-          throw new Error('');
-        }
-        return hunterChoice.target;
+        return hunterChoice ? [hunterChoice.target] : [];
       });
-      const hunterKillListRoles = hunterKillList.map((p) =>
-        gameState.getRoleName(p)
-      );
-      if (hunterKillListRoles.includes(RoleName.werewolf)) {
-        winner = Team.villagers;
-      }
       playersWhoDie = playersWhoDie.concat(hunterKillList);
     }
 

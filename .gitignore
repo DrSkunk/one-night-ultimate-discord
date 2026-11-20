@@ -11,5 +11,6 @@ roms/*.gb
 saves/*.sav
 frames/*.png
 .env
+discord-test-report.txt
 
 src/commands/Test.ts

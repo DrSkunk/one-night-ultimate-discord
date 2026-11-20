@@ -4,6 +4,7 @@
 .vscode
 .env
 .env.*
+discord-test-report.txt
 !.env.example
 *Dockerfile*
 *docker-compose*

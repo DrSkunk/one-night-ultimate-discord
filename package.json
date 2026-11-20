@@ -9,6 +9,7 @@
     "dev": "bun --watch src/index.ts",
     "register": "bun scripts/register-commands.ts",
     "test": "bun test",
+    "test:discord": "bun scripts/test-discord.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

@@ -91,6 +91,27 @@ local `.env` file, then run `bun run register` and `bun start`. Check that:
 - The bot joins voice, plays the night loop and rooster, and disconnects when
   the game ends or the voice channel empties.
 
+For a playtest report you can share for debugging, set `DISCORD_TOKEN`,
+`DISCORD_CLIENT_ID` and `DEV_GUILD_ID` in `.env`, then run:
+
+```sh
+bun install --frozen-lockfile
+bun run test:discord --register
+```
+
+The script checks lint, types, unit tests, dependencies, bot authentication,
+test-server access and slash commands before starting the bot with debug logs.
+`--register` replaces commands **only in the test server**; omit it if they are
+already registered. Use `--check-only` to run local checks without contacting
+Discord.
+
+Play a game in Discord, then press **Ctrl+C in the terminal** to stop recording.
+The script saves `discord-test-report.txt` (overwritten on each run and ignored
+by Git). Tokens, Discord IDs and common identity fields are redacted, but review
+the file for other private details before sharing it. Paste its contents along
+with what you clicked, what you expected, and what actually happened. Never share
+your `.env` file or bot token.
+
 ## Credits
 
 Images are custom designed by [T44 Productions](https://www.t44.productions/home) with [CC BY-NC-ND 4.0 license](https://creativecommons.org/licenses/by-nc-nd/4.0/).
